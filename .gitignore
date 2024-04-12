@@ -1,6 +1,6 @@
 .DS_Store
 .idea
-./classifyc/model/
+/classifyc/model/
 datasets/*
 */__pycache__
 */*/__pycache__

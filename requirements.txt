@@ -11,3 +11,4 @@ gevent
 requests
 torchvision
 torch
+timm
