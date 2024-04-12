@@ -7,6 +7,11 @@ name=${file_name%.*}
 
 #根目录
 root_path=$(readlink -f "../")
+if [ ! -e "$root_path" ]; then
+    echo "错误: 根目录不存在"
+    exit 1
+fi
+
 #日志文件夹
 current_time=$(date "+%m%d%H")
 log_root_path="${root_path}/log"
