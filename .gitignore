@@ -1,0 +1,12 @@
+.DS_Store
+.idea
+./classifyc/model/
+datasets/*
+*/__pycache__
+*/*/__pycache__
+log/*
+timm/*
+/sh/*
+!sh/default
+coin_Identify.iml
+*/.ipynb_checkpoints
