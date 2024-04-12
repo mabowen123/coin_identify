@@ -1,6 +1,6 @@
 
 from datetime import datetime
-import json
+from flask import json
 from werkzeug.wrappers import Response
 
 

@@ -2,6 +2,7 @@ import argparse
 import json
 import logging
 import os
+import subprocess
 import time
 import numpy as np
 
@@ -143,16 +144,6 @@ def thread_download3_online(url1):
 
 
 def main():
-    global excel_path
-    global check_big_label_name
-    global url_route
-
-    check_big_label_name = args.check_big_label_name
-    req_type = args.req_type
-    excel_path = args.excel_path
-    url_route = args.url_route
-    serial_number_is_null = args.serial_number_is_null
-
     xls = pd.read_excel(excel_path, sheet_name=None)
     no_process = 0
     right, error = 0, 0
@@ -243,4 +234,25 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    global excel_path
+    global check_big_label_name
+    global url_route
+
+    check_big_label_name = args.check_big_label_name
+    req_type = args.req_type
+    excel_path = args.excel_path
+    url_route = args.url_route
+    serial_number_is_null = args.serial_number_is_null
+    index_path = args.index_path
+    model_path1 = args.model_path1
+
+    # 要执行的 Python 脚本的文件路径
+    script_directory = os.path.dirname(os.path.abspath(__file__))
+    script_path = os.path.join(script_directory, "./rotate_pic.py")
+    # 使用 subprocess 模块运行另一个 Python 脚本
+    try:
+        subprocess.run(["python3", script_path, "--index_path", index_path, "--model_path", model_path1], check=True,
+                       capture_output=False)
+        main()
+    except subprocess.CalledProcessError as e:
+        print(f"脚本执行失败: {e}")

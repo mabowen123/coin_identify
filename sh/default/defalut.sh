@@ -54,7 +54,7 @@ fi
 ############################训练###################################
 num_classes=$(ls ${output_path}/train/ | wc -l)
 echo 'num_classes:' "${num_classes}"
-model_path=${output_path}'/model/'
+model_path=${output_path}'/model'
 echo '模型存放目录:' ${model_path}
 mkdir -p ${model_path}  &&    chmod -R 777  ${model_path}
 
@@ -85,14 +85,14 @@ CUDA_VISIBLE_DEVICES=${CUDA} python3 -m torch.distributed.launch --nproc_per_nod
 #############################训练#################################
 
 
-
+index_path=${output_path}"/index.txt"
 #############################验证#################################
 modelname=$(ls -l ${model_path} | grep ${model} | tail -n 1 | awk '{print $9}')
 model_path1=${model_path}'/'${modelname}'/'
 echo '模型完整路径:' "${model_path1}"
 #############################验证#################################
 python3 ${root_path}"/train"/validate.py ${output_path}"/valida"\
-       --class_map ${output_path}"/index.txt" \
+       --class_map ${index_path} \
        --num-classes "${num_classes}" \
        --img-size 416 \
        --model ${model}\
@@ -100,21 +100,21 @@ python3 ${root_path}"/train"/validate.py ${output_path}"/valida"\
        --checkpoint "${model_path1}" | tee -a "${log_path}"
 #############################验证#################################
 
+#############################导出#################################
+checkpointName='last'
+ model_export_path=${model_path1}/${name}_${checkpointName}_model_best_one.onnx
+  python3 ${root_path}/valid/onnx_export_vit.py  \
+       --num_classes ${num_classes}  \
+       --input_dim ${img_size} \
+       --folder_path ${model_path1}/${checkpointName}'.pth.tar' \
+       --single_model --model_name ${model} | tee -a "${log_path}"
+ mv ${model_path1}${checkpointName}'.onnx' ${model_export_path}
+#############################导出#################################
+
+
 #############################验证服务#################################
-python3 ${root_path}/classifyc/run.py \
-       --model_path ${model_path1} \
-       --index_path ${index_path}
-
-
-python3 predict_class_excel.py --excel_path ${valida_execl_path} \
-        --check_big_label_name ${name} \
+python3 ${root_path}/"valid"/predict_class_excel.py --excel_path ${valida_execl_path} \
+        --check_big_label_name ${name}  \
+        --model_path ${model_path1} \
+        --index_path ${index_path}
 #############################验证服务###########################
-
-#############################导出#################################
- checkpointName='last'
- python3 ${root_path}/valid/onnx_export_vit.py  \
-      --num_classes ${num_classes}  \
-      --input_dim ${img_size} \
-      --folder_path ${model_path1}/${checkpointName}'.pth.tar' \
-      --single_model --model_name ${model} | tee -a "${log_path}"
-#############################导出#################################
