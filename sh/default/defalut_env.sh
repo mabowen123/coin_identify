@@ -7,7 +7,7 @@ fi
 
 echo "根目录:${root_path}"
 #日志文件夹
-current_time=$(date "+%m%d%H")
+current_time=$(date "+%m%d%H%M")
 export log_root_path="${root_path}/log"
 #默认日志路径
 export log_path="${log_root_path}/${current_time}.log"
