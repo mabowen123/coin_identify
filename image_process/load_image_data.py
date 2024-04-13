@@ -107,12 +107,12 @@ class LoadImageData():
             save_path = image_until.save_image(url, coin_item["版别"], label_name_path)
             if file.file_exists(save_path, False):
                 image_until.image_gray(save_path)
-                [scale_img, isOk] = image_until.scale_img(save_path)
-                if isOk:
+                scale_img, is_ok = image_until.scale_img(save_path)
+                if is_ok:
                     cv2.imwrite(save_path, scale_img)
                     self.incr_process_total(label_name_path)
                 else:
-                    file.remove_file(save_path)
+                    file.remove_file(save_path, True)
         except Exception as e:
             print_with_timestamp("异常图片url: %s err: %s" % (url, e))
 
