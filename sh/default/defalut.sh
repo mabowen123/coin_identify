@@ -26,6 +26,7 @@ if [ $op -gt 0 ]; then
   fi
  #数据切割
  python3  ${image_process_root_path}/divide_data.py \
+          --rotate_angle 0  \
           --divide_path ${output_path} |  tee -a "${log_path}"
 fi
 #############################数据处理#############################
