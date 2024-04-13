@@ -60,7 +60,8 @@ class DivideData():
             script_path = os.path.join(script_directory, "./rotate_pic.py")
             # 使用 subprocess 模块运行另一个 Python 脚本
             try:
-                subprocess.run(["python3", script_path, "--rotate_pic_path_list", str_result], check=True)
+                sub = subprocess.Popen(["python3", script_path, "--rotate_pic_path_list", str_result])
+                sub.wait()
                 self.divide_datasets()
             except subprocess.CalledProcessError as e:
                 print(f"脚本执行失败: {e}")
