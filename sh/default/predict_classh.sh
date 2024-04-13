@@ -1,6 +1,7 @@
 #根目录
-source ./env.sh
-
+script_path=$(dirname "$0")
+#加载环境变量
+source ${script_path}/env.sh
 url="/shengsongyuanbao/predict"
 # url 为空必填 model oonx 路径
 model_export_path="aaaa"
