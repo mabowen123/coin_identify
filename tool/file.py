@@ -2,6 +2,7 @@ import os
 import shutil
 from pathlib import Path
 from tool.print import print_with_timestamp
+import yaml
 
 
 def remove_file(file_path, need_print=False):
@@ -71,3 +72,13 @@ def file_list_copy(file_list, src, dst):
         src_path = os.path.join(src, file)
         dst_path = os.path.join(dst, file)
         shutil.copyfile(str(src_path), str(dst_path))
+
+
+def get_classify_run_port():
+    default_port = 7788
+    if not file_exists('../config.yaml'):
+        return default_port
+    with open('../config.yaml', 'r') as f:
+        config = yaml.safe_load(f)
+
+    return config.get('classify_server_port', default_port)

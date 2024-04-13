@@ -1,8 +1,10 @@
 from gevent import monkey
+import sys
+
+sys.path.append("../")
+from tool import file
 
 monkey.patch_all(thread=False)
-
-
 
 from gevent import pywsgi
 from app import flask_app as app
@@ -12,7 +14,8 @@ bootstrap(app)
 
 
 def run_forever():
-    server = pywsgi.WSGIServer(('0.0.0.0', 86), app)
+    classify_run_port = file.get_classify_run_port()
+    server = pywsgi.WSGIServer(('0.0.0.0', classify_run_port), app)
     server.serve_forever()
 
 

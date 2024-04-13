@@ -7,7 +7,7 @@ import time
 import requests
 
 sys.path.append("../")
-from tool import netstat
+from tool import netstat, file
 from image_process import load_execl
 from options import predict_execl_options as peOpt
 from tool.print import print_with_timestamp
@@ -25,12 +25,13 @@ class PredictExecl():
             os.path.dirname(self.valida_execl_path), "index.txt")
         self.url = param.url
         self.need_run_valida_server()
+        self.classify_run_port = file.get_classify_run_port()
 
     def need_run_valida_server(self):
         if not self.is_local():
             return True
         print_with_timestamp("正在启动验证服务,请稍等")
-        netstat.kill_process_using_port(86)
+        netstat.kill_process_using_port(self.classify_run_port)
         try:
             script_directory = os.path.dirname(os.path.abspath(__file__))
             script_path = os.path.join(script_directory, "../classifyc/run.py")
@@ -49,7 +50,7 @@ class PredictExecl():
         for i in range(10):
             time.sleep(2)
             try:
-                r = requests.get('http://127.0.0.1:86/health')
+                r = requests.get(f'http://127.0.0.1:{self.classify_run_port}/health')
                 if r.status_code == 200:
                     return True
             except (Exception,):
@@ -61,7 +62,7 @@ class PredictExecl():
         return self.url == ""
 
     def get_req_url(self, image_url):
-        url = f"http://127.0.0.1:86/classifyc/api/predict_old?pic1={image_url}"
+        url = f"http://127.0.0.1:{self.classify_run_port}/classifyc/api/predict_old?pic1={image_url}"
         if not self.is_local():
             url = f"http://imgt.wpt.la/ancient-coin/api/{self.url}?pic={image_url}"
         return url
