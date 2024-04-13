@@ -1,14 +1,16 @@
 #!/bin/bash
 # -*- coding: utf-8 -*-
 #训练标题
+#训练标题
 file_name=$(basename "$0")
+script_path=$(dirname "$0")
 name=${file_name%.*}
 #加载环境变量
-bash ./env.sh "${name}"
+bash ${script_path}/env.sh "${name}"
 # 默认参数
 default_op=1
 #目标路径更改文件名称
-bash ${sh_root_path}"/default/rename_file.sh" ${output_path}
+bash ${sh_root_path}/default/rename_file.sh ${output_path}
 # ############################数据处理#############################
 echo "是否处理数据,会重新删除,生成文件!  0-不操作(默认) 1-切割数据 2-下载&切割数据 "
 read -t 3 -p "输入你的操作:" op
