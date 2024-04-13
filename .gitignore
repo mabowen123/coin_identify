@@ -6,7 +6,6 @@ datasets/*
 log/*
 /sh/*
 !sh/default
-!sh/env.sh
 coin_Identify.iml
 **/.ipynb_checkpoints/
 **/__pycache__/
