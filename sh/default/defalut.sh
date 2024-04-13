@@ -4,7 +4,8 @@
 #训练标题
 file_name=$(basename "$0")
 name=${file_name%.*}
-
+# 默认参数
+default_op=1
 #根目录
 root_path=$(readlink -f "../")
 if [ ! -e "$root_path" ]; then
@@ -69,9 +70,9 @@ img_size=416
 batch_size=32
 
 #############################训练#################################
-echo "是否重新训练 1-是  0-不操作(默认)"
+echo "是否重新训练 1-是  0-不操作 (默认-${default_op})"
 read -t 3 -p "输入你的操作:" op
-op=${op:-0}
+op=${op:-${default_op}}
 if [ $op -gt 0 ]; then
 # python3 -u \
 CUDA=0,1,2,3,4,5,6,7
@@ -94,9 +95,9 @@ index_path=${output_path}"/index.txt"
 model_file_path=${model_path}'/'$(ls -l ${model_path} | grep ${model} | tail -n 1 | awk '{print $9}')
 echo '模型完整路径:' "${model_file_path}"
 #############################验证#################################
-echo "是否启动验证脚本 1-是  0-不操作(默认)"
+echo "是否启动验证脚本 1-是  0-不操作 (默认-${default_op})"
 read -t 3 -p "输入你的操作:" op
-op=${op:-0}
+op=${op:-${default_op}}
 if [ $op -gt 0 ]; then
 python3 ${root_path}"/valid"/validate.py ${output_path}"/valida"\
        --class_map ${index_path} \
@@ -117,9 +118,9 @@ if [ "$checkpointName" == 'model_best' ]; then
     model_export_path="${model_file_path}/${name}_${checkpointName}_one.onnx"
 fi
 #############################模型导出#################################
-echo "是否导出模型 1-是  0-不操作(默认)"
+echo "是否导出模型 1-是  0-不操作 (默认-${default_op})"
 read -t 3 -p "输入你的操作:" op
-op=${op:-0}
+op=${op:-${default_op}}
 if [ $op -gt 0 ]; then
 python3 ${root_path}/valid/onnx_export_vit.py  \
        --num_classes ${num_classes}  \
@@ -132,12 +133,12 @@ fi
 
 
 #############################验证服务#################################
-echo "是否验证execl 1-是  0-不操作(默认)"
+echo "是否验证execl 1-是  0-不操作 (默认-${default_op})"
 read -t 3 -p "输入你的操作:" op
-op=${op:-0}
+op=${op:-${default_op}}
 if [ $op -gt 0 ]; then
 python3 ${root_path}/"valid"/predict_class_excel.py \
         --valida_execl_path ${valida_execl_path} \
-        --model_path ${model_file_path} | tee -a "${log_path}"
+        --model_path ${model_export_path} | tee -a "${log_path}"
 fi
 #############################验证服务###########################

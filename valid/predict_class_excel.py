@@ -26,11 +26,13 @@ class PredictExecl():
     def need_run_valida_server(self):
         if not self.is_local():
             return True
-
+        print_with_timestamp("正在启动验证服务,请稍等")
         netstat.kill_process_using_port(86)
         try:
             script_directory = os.path.dirname(os.path.abspath(__file__))
             script_path = os.path.join(script_directory, "../classifyc/run.py")
+            print_with_timestamp(
+                f"nohup python3 {script_path} --index_path {self.index_path} --model_path {self.model_path}")
             subprocess.Popen(
                 ["nohup", "python3", script_path, "--index_path", self.index_path, "--model_path", self.model_path],
                 stdin=subprocess.PIPE,
