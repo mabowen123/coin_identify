@@ -9,12 +9,16 @@ from tool.print import print_with_timestamp
 
 def map_execl_to_load_image(file_path):
     df = pd.read_excel(file_path, header=0, index_col=False)
-    is_duplicate = df.duplicated(subset=["正面图片"])
+    duplicate_subset = "正面图片"
+    is_duplicate = df.duplicated(subset=[duplicate_subset])
     if is_duplicate.any():
-        duplicate_counts = df.groupby('正面图片').size().reset_index(name='counts')
-        print_with_timestamp(f"---------有重复行-------------------有重复行-----------")
-        print(duplicate_counts)
-        print_with_timestamp(f"---------有重复行-------------------有重复行-----------")
+        print_with_timestamp(file_path)
+        print_with_timestamp("-------------------有重复行----------------------")
+        count_per_image = df.groupby(duplicate_subset).size().reset_index(name='counts')
+        images_with_more_than_two = count_per_image[count_per_image['counts'] > 1]
+        for index, row in images_with_more_than_two.iterrows():
+            print(f"图片: {row['正面图片']}, 出现次数: {row['counts']}")
+            print_with_timestamp("-------------------有重复行----------------------")
     res = dict()
     for index, row in df.iterrows():
         # 直接是execl 的 字典
