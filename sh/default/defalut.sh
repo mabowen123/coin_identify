@@ -10,7 +10,7 @@ source ${script_path}/env.sh "${name}"
 # 默认参数
 default_op=1
 # 图片处理默认参数
-default_image_op=1
+default_image_op=2
 #目标路径更改文件名称
 bash ${sh_root_path}/default/rename_file.sh ${output_path}
 # ############################数据处理#############################
