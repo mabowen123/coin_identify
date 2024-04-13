@@ -19,6 +19,7 @@ import timm
 class DivideData():
     def __init__(self, params):
         self.divide_path = params.divide_path
+        self.rotate_angle = params.rotate_angle
         self.split_ratio = params.split_ratio
         self.max_threads_num = params.max_threads_num
         self.train_min_num = params.train_min_num
@@ -54,6 +55,8 @@ class DivideData():
             str_result = ','.join(str(x) for x in self.train_num_too_short)
             print_with_timestamp(str_result)
             print_with_timestamp("-------------------------------------------------")
+            if self.rotate_angle <= 0:
+                return
 
             # 要执行的 Python 脚本的文件路径
             script_directory = os.path.dirname(os.path.abspath(__file__))
