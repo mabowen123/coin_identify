@@ -9,6 +9,8 @@ echo "根目录:${root_path}"
 #日志文件夹
 current_time=$(date "+%m%d%H")
 export log_root_path="${root_path}/log"
+#默认日志路径
+export log_path="${log_root_path}/${current_time}.log"
 #数据集目录
 export data_root_path=${root_path}"/datasets"
 echo "数据集路径:${data_root_path}"
@@ -33,7 +35,7 @@ name=$1
 # 检查 name 是否非空
 if [ -n "$name" ]; then
        mkdir -p "${log_root_path}/${name}"
-       log_path="${log_root_path}/${name}/${current_time}.log"
+       export log_path="${log_root_path}/${name}/${current_time}.log"
        echo "日志路径:${log_path}"
        export output_path=${data_root_path}/${name}
        echo "目标输出路径:${output_path}"
