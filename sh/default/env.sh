@@ -53,7 +53,7 @@ if [ -n "$name" ]; then
        echo "验证集execl路径:${valida_execl_path}"
        #index文件路径
        index_path=${output_path}"/index.txt"
-       echo "index文件路径:${valida_execl_path}"
+       echo "index文件路径:${index_path}"
 fi
 
 chmod -R 777 ${root_path}

@@ -41,7 +41,7 @@ model='efficientnet_b5'
 
 img_size=672
 batch_size=32
-if [ "model" == 'tf_efficientnet_b8.ap_in1k' ]; then
+if [ "${model}" == 'tf_efficientnet_b8.ap_in1k' ]; then
    img_size=416
    batch_size=6
 fi
