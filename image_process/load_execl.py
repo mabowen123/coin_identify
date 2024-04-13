@@ -11,7 +11,10 @@ def map_execl_to_load_image(file_path):
     df = pd.read_excel(file_path, header=0, index_col=False)
     is_duplicate = df.duplicated(subset=["正面图片"])
     if is_duplicate.any():
-        print_with_timestamp(f"---------有重复行------------{file_path}-------有重复行-----------")
+        duplicate_counts = df.groupby('正面图片').size().reset_index(name='counts')
+        print_with_timestamp(f"---------有重复行-------------------有重复行-----------")
+        print(duplicate_counts)
+        print_with_timestamp(f"---------有重复行-------------------有重复行-----------")
     res = dict()
     for index, row in df.iterrows():
         # 直接是execl 的 字典
