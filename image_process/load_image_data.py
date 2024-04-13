@@ -62,6 +62,7 @@ class LoadImageData():
             self.data_sets_valida_path: valida_data,
         }
         print_with_timestamp("------------------开始处理图片------------------")
+        self.print_process_log(True)
         for path, label_item in res.items():
             for label_name, coin_data in label_item.items():
                 # 训练 or 测试 路径 创建对应的文件夹
@@ -90,7 +91,7 @@ class LoadImageData():
             self.valida_data_process_total += 1
         elif "origin" in label_name_path:
             self.train_data_process_total += 1
-        self.print_process_log((self.get_process_data_total() % 100 == 0))
+        self.print_process_log((self.get_process_data_total() % 300 == 0))
 
     # 获取已经处理的数据条数
     def get_process_data_total(self):
