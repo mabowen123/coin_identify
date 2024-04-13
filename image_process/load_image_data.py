@@ -55,8 +55,8 @@ class LoadImageData():
     # 获取execl 数据 分发线程处理
     def process_data(self):
         # 处理训练集execl 获取数据 创建文件夹
-        [train_data, self.train_data_total] = load_execl.map_execl_to_load_image(self.train_execl_path)
-        [valida_data, self.valida_data_total] = load_execl.map_execl_to_load_image(self.valida_execl_path)
+        train_data, self.train_data_total = load_execl.map_execl_to_load_image(self.train_execl_path)
+        valida_data, self.valida_data_total = load_execl.map_execl_to_load_image(self.valida_execl_path)
         res = {
             self.data_sets_origin_path: train_data,
             self.data_sets_valida_path: valida_data,

@@ -12,3 +12,4 @@ requests
 torchvision
 torch
 timm
+pyyaml

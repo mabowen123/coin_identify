@@ -24,6 +24,8 @@ data_root_path=${root_path}"/datasets"
 image_process_root_path=${root_path}"/image_process"
 #图片输出路径
 output_path=${data_root_path}/${name}
+#识别类别个数
+num_classes=$(ls ${output_path}/train/ | wc -l)
 #目标路径更改文件名称
 bash ./default/rename_file.sh  ${output_path}
 #训练集execl路径
@@ -31,10 +33,10 @@ train_execl_path="${data_root_path}/${name}/训练样本.xlsx"
 #验证集execl路径
 valida_execl_path="${data_root_path}/${name}/验证样本.xlsx"
 
-echo "是否处理数据,会重新删除,生成文件! 1-切割数据 2-下载&切割数据 0-默认不操作"
-read -p "输入你的操作:" op
-op=${op:-0}
 # ############################数据处理#############################
+echo "是否处理数据,会重新删除,生成文件!  0-不操作(默认) 1-切割数据 2-下载&切割数据 "
+read -t 3 -p "输入你的操作:" op
+op=${op:-0}
 if [ $op -gt 0 ]; then
   if [ $op -gt 1 ]; then
  #训练数据加载
@@ -52,10 +54,7 @@ fi
 
 
 ############################训练###################################
-num_classes=$(ls ${output_path}/train/ | wc -l)
-echo 'num_classes:' "${num_classes}"
 model_path=${output_path}'/model'
-echo '模型存放目录:' ${model_path}
 mkdir -p ${model_path}  &&    chmod -R 777  ${model_path}
 
 master_port=20001
@@ -70,6 +69,10 @@ img_size=416
 batch_size=32
 
 #############################训练#################################
+echo "是否重新训练 1-是  0-不操作(默认)"
+read -t 3 -p "输入你的操作:" op
+op=${op:-0}
+if [ $op -gt 0 ]; then
 # python3 -u \
 CUDA=0,1,2,3,4,5,6,7
 CUDA_VISIBLE_DEVICES=${CUDA} python3 -m torch.distributed.launch --nproc_per_node=$(echo "$CUDA" | awk -F',' '{print NF}') --master_port=${master_port} --use_env \
@@ -82,39 +85,59 @@ CUDA_VISIBLE_DEVICES=${CUDA} python3 -m torch.distributed.launch --nproc_per_nod
       --pretrained --lr .001 -j 8  --opt adamp  --weight-decay 1e-5  --decay-epochs 2  --decay-rate .95  --warmup-lr 1e-6 \
       --warmup-epochs 1      --remode pixel       --reprob 0.15     --amp \
       --output ${model_path} | tee -a "${log_path}"
+fi
 #############################训练#################################
 
 
+#############################验证#################################
 index_path=${output_path}"/index.txt"
+model_file_path=${model_path}'/'$(ls -l ${model_path} | grep ${model} | tail -n 1 | awk '{print $9}')
+echo '模型完整路径:' "${model_file_path}"
 #############################验证#################################
-modelname=$(ls -l ${model_path} | grep ${model} | tail -n 1 | awk '{print $9}')
-model_path1=${model_path}'/'${modelname}'/'
-echo '模型完整路径:' "${model_path1}"
-#############################验证#################################
-python3 ${root_path}"/train"/validate.py ${output_path}"/valida"\
+echo "是否启动验证脚本 1-是  0-不操作(默认)"
+read -t 3 -p "输入你的操作:" op
+op=${op:-0}
+if [ $op -gt 0 ]; then
+python3 ${root_path}"/valid"/validate.py ${output_path}"/valida"\
        --class_map ${index_path} \
        --num-classes "${num_classes}" \
        --img-size 416 \
        --model ${model}\
        --split val2 -b 128 \
-       --checkpoint "${model_path1}" | tee -a "${log_path}"
+       --checkpoint "${model_file_path}" | tee -a "${log_path}"
+fi
 #############################验证#################################
 
-#############################导出#################################
+
+
+#############################模型导出#################################
 checkpointName='last'
- model_export_path=${model_path1}/${name}_${checkpointName}_model_best_one.onnx
-  python3 ${root_path}/valid/onnx_export_vit.py  \
+model_export_path="${model_file_path}/${name}_${checkpointName}_model_best_one.onnx"
+if [ "$checkpointName" == 'model_best' ]; then
+    model_export_path="${model_file_path}/${name}_${checkpointName}_one.onnx"
+fi
+#############################模型导出#################################
+echo "是否导出模型 1-是  0-不操作(默认)"
+read -t 3 -p "输入你的操作:" op
+op=${op:-0}
+if [ $op -gt 0 ]; then
+python3 ${root_path}/valid/onnx_export_vit.py  \
        --num_classes ${num_classes}  \
        --input_dim ${img_size} \
-       --folder_path ${model_path1}/${checkpointName}'.pth.tar' \
+       --folder_path ${model_file_path}/${checkpointName}'.pth.tar' \
        --single_model --model_name ${model} | tee -a "${log_path}"
- mv ${model_path1}${checkpointName}'.onnx' ${model_export_path}
-#############################导出#################################
+mv ${model_file_path}/${checkpointName}'.onnx' ${model_export_path}
+fi
+#############################模型导出#################################
 
 
 #############################验证服务#################################
-python3 ${root_path}/"valid"/predict_class_excel.py --excel_path ${valida_execl_path} \
-        --check_big_label_name ${name}  \
-        --model_path ${model_path1} \
-        --index_path ${index_path}
+echo "是否验证execl 1-是  0-不操作(默认)"
+read -t 3 -p "输入你的操作:" op
+op=${op:-0}
+if [ $op -gt 0 ]; then
+python3 ${root_path}/"valid"/predict_class_excel.py \
+        --valida_execl_path ${valida_execl_path} \
+        --model_path ${model_file_path} | tee -a "${log_path}"
+fi
 #############################验证服务###########################
