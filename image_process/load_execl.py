@@ -12,8 +12,8 @@ def map_execl_to_load_image(file_path):
     duplicate_subset = "正面图片"
     is_duplicate = df.duplicated(subset=[duplicate_subset])
     if is_duplicate.any():
-        print_with_timestamp(file_path)
         print_with_timestamp("-------------------有重复行----------------------")
+        print_with_timestamp(f"文件路径:{file_path}")
         count_per_image = df.groupby(duplicate_subset).size().reset_index(name='counts')
         images_with_more_than_two = count_per_image[count_per_image['counts'] > 1]
         for index, row in images_with_more_than_two.iterrows():
