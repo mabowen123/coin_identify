@@ -84,8 +84,6 @@ def cut_img_code(img_name):
 def scale_img(right_image):
     try:
         right_image = cut_img_code(right_image)
-        if right_image == "":
-            return ["", False]
         right_image_szie = right_image.shape
         right_image_szie_h = right_image_szie[0]
         right_image_szie_w = right_image_szie[1]
@@ -95,5 +93,5 @@ def scale_img(right_image):
         right_image_scaled = cv2.resize(right_image, (width_new, height_new))
         return [right_image_scaled, True]
     except (Exception,) as e:
-        print_with_timestamp("scale_img处理出错 right_iamge:%s err: %s" % (right_image, e))
+        print_with_timestamp(f"scale_img处理出错err:{e}")
         return ["", False]
