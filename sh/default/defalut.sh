@@ -76,7 +76,7 @@ op=${op:-${default_op}}
 if [ $op -gt 0 ]; then
 # python3 -u \
 CUDA=0,1,2,3,4,5,6,7
-CUDA_VISIBLE_DEVICES=${CUDA} python3 -m torch.distributed.launch --nproc_per_node=$(echo "$CUDA" | awk -F',' '{print NF}') --master_port=${master_port} --use_env \
+CUDA_VISIBLE_DEVICES=${CUDA} python3 -m torch.distributed.launch --nproc_per_node=$(echo "$CUDA" | awk -F',' '{print NF}') --master_port=${master_port} \
   ${root_path}"/train"/train_add_loss.py ${output_path}\
       --num-classes "${num_classes}"\
       --model ${model} \
@@ -112,11 +112,12 @@ fi
 
 
 #############################模型导出#################################
-checkpointName='last'
+checkpointName='model_best'
 model_export_path="${model_file_path}/${name}_${checkpointName}_model_best_one.onnx"
 if [ "$checkpointName" == 'model_best' ]; then
     model_export_path="${model_file_path}/${name}_${checkpointName}_one.onnx"
 fi
+#model_export_path
 echp "模型导出路径:${model_export_path}"
 #############################模型导出#################################
 echo "是否导出模型 1-是  0-不操作 (默认-${default_op})"
