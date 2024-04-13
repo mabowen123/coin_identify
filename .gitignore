@@ -7,5 +7,6 @@ log/*
 /sh/*
 !sh/default
 coin_Identify.iml
+config.yaml
 **/.ipynb_checkpoints/
 **/__pycache__/
