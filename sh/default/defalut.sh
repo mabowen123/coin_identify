@@ -117,6 +117,7 @@ model_export_path="${model_file_path}/${name}_${checkpointName}_model_best_one.o
 if [ "$checkpointName" == 'model_best' ]; then
     model_export_path="${model_file_path}/${name}_${checkpointName}_one.onnx"
 fi
+echi "模型导出路径:${model_export_path}"
 #############################模型导出#################################
 echo "是否导出模型 1-是  0-不操作 (默认-${default_op})"
 read -t 3 -p "输入你的操作:" op
