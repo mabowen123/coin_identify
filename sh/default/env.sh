@@ -44,7 +44,7 @@ if [ -n "$name" ]; then
        echo "训练图片文件夹路径:${train_image_path}"
        export  model_path=${output_path}'/model'
        mkdir -p ${model_path}  &&    chmod -R 777  ${model_path}
-       echo "模型存放路径:${train_image_path}"
+       echo "模型存放路径:${model_path}"
        #训练集execl路径
        export train_execl_path="${data_root_path}/${name}/训练样本.xlsx"
        echo "训练集execl路径:${train_execl_path}"

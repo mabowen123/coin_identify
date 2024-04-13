@@ -35,14 +35,15 @@ echo "识别类别个数:${num_classes}"
 ############################训练###################################
 master_port=20001
 epochs=200
-batch_size=32
 
 # model='tf_efficientnet_b8.ap_in1k'
 model='efficientnet_b5'
 
 img_size=672
+batch_size=32
 if [ "model" == 'tf_efficientnet_b8.ap_in1k' ]; then
    img_size=416
+   batch_size=6
 fi
 
 #############################训练#################################
