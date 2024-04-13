@@ -1,5 +1,6 @@
 import os
 import sys
+
 sys.path.append("../")
 from options import run_options as runOpt
 
@@ -580,10 +581,13 @@ all_class_names_82 = {0: '崇宁通宝_大字大宝', 1: '崇宁通宝_宽字正
                       81: '崇宁重宝_肥字降宝'}
 
 CLASSIFY_OLD_MODEL_PATH_1129 = common_path
-index_path=params.index_path
+index_path = params.index_path
 with open(index_path, 'r') as file:
     # 读取文件的所有行
     lines = file.readlines()
 
 # 转化成字典
 all_class_names_27 = {idx: string.strip() for idx, string in enumerate(lines)}
+print("---------------------index-------------------------------")
+print(all_class_names_27)
+print("---------------------index-------------------------------")
