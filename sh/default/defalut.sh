@@ -14,7 +14,7 @@ default_image_op=2
 #目标路径更改文件名称
 bash ${sh_root_path}/default/rename_file.sh ${output_path}
 # ############################数据处理#############################
-echo "是否处理数据,会重新删除,生成文件!  0-不操作 1-切割数据 2-下载&切割数据 (默认-${default_image_op} "
+echo "是否处理数据,会重新删除,生成文件!  0-不操作 1-切割数据 2-下载&切割数据 (默认-${default_image_op}) "
 read -t 3 -p "输入你的操作:" op
 op=${op:-${default_image_op}}
 if [ $op -gt 0 ]; then
