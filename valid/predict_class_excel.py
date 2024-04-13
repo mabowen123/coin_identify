@@ -18,8 +18,12 @@ class PredictExecl():
         self.valida_execl_path = param.valida_execl_path
         self.model_path = param.model_path
         self.index_path = param.index_path
+        if param.url and not param.model_path:
+            print_with_timestamp("当--url不为空时，必须提供--model_path")
+            exit()
+
         self.index_path = param.index_path if param.index_path else os.path.join(
-            os.path.dirname(self.valida_execl_path), "index.txt")
+        os.path.dirname(self.valida_execl_path), "index.txt")
         self.url = param.url
         self.need_run_valida_server()
 

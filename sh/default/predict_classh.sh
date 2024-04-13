@@ -1,8 +1,10 @@
 #根目录
 source ./env.sh
 
-url=""
+url="/shengsongyuanbao/predict"
+# url 为空必填 model oonx 路径
 model_export_path=""
+valida_execl_path=""
 
 python3 ${valid_root_path}"/predict_class_excel.py \
         --valida_execl_path ${valida_execl_path} \
