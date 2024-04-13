@@ -72,7 +72,7 @@ def merge_execl(train_execl_path, execl_merge_path):
         full_path = os.path.join(execl_merge_path, path)
         if not full_path.endswith('.xlsx'):
             continue
-        print_with_timestamp(f"合并{full_path}到训练文件:{original_df}")
+        print_with_timestamp(f"合并{full_path}到训练文件:{train_execl_path}")
         target_df = pd.read_excel(full_path, header=0)
         original_df = original_df._append(target_df, ignore_index=True)
 
