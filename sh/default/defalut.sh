@@ -4,7 +4,7 @@
 file_name=$(basename "$0")
 name=${file_name%.*}
 #加载环境变量
-source ./env.sh "${name}"
+bash ./env.sh "${name}"
 # 默认参数
 default_op=1
 #目标路径更改文件名称
