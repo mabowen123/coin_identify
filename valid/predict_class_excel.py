@@ -67,7 +67,7 @@ class PredictExecl():
         label_dist = {}
         print_with_timestamp("-------------------验证开始---------------")
         for label_name, coin_item in res.items():
-            if label_name in label_dist:
+            if label_name not in label_dist:
                 label_dist[label_name] = {'right': 0, 'error': 0, 'no_process': 0, 'all': 0}
             for item in coin_item:
                 label_dist[label_name]["all"] += 1
