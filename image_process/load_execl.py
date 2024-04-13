@@ -18,7 +18,7 @@ def map_execl_to_load_image(file_path):
         images_with_more_than_two = count_per_image[count_per_image['counts'] > 1]
         for index, row in images_with_more_than_two.iterrows():
             print(f"图片: {row['正面图片']}, 出现次数: {row['counts']}")
-            print_with_timestamp("-------------------有重复行----------------------")
+        print_with_timestamp("-------------------有重复行----------------------")
     res = dict()
     for index, row in df.iterrows():
         # 直接是execl 的 字典
