@@ -32,7 +32,7 @@ fi
 name=$1
 # 检查 name 是否非空
 if [ -n "$name" ]; then
-      mkdir -p "${log_root_path}/${name}"
+       mkdir -p "${log_root_path}/${name}"
        log_path="${log_root_path}/${name}/${current_time}.log"
        echo "日志路径:${log_path}"
        export output_path=${data_root_path}/${name}

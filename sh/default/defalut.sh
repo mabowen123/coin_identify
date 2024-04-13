@@ -6,7 +6,7 @@ file_name=$(basename "$0")
 script_path=$(dirname "$0")
 name=${file_name%.*}
 #加载环境变量
-bash ${script_path}/env.sh "${name}"
+source ${script_path}/env.sh "${name}"
 # 默认参数
 default_op=1
 #目标路径更改文件名称
