@@ -219,7 +219,7 @@ def create_transform(
         crop_mode=None,
         tf_preprocessing=False,
         separate=False):
-    print('create_transform', is_training, 1, tf_preprocessing,2,use_prefetcher, 3,no_aug)
+    # print('create_transform', is_training, 1, tf_preprocessing,2,use_prefetcher, 3,no_aug)
     if isinstance(input_size, (tuple, list)):
         img_size = input_size[-2:]
     else:
