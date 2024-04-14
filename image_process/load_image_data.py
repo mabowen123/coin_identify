@@ -30,7 +30,7 @@ class LoadImageData():
         # 前置校验execl文件
         self.load_and_check_file()
         # 创建出 原图/验证的文件夹
-        [self.data_sets_origin_path, self.data_sets_valida_path] = self.mk_output_dir()
+        self.data_sets_origin_path, self.data_sets_valida_path, self.data_sets_backup_path = self.mk_output_dir()
         # 训练集多少张
         self.train_data_total = 0
         self.train_data_process_total = 0
@@ -87,9 +87,9 @@ class LoadImageData():
 
     #  增加处理个数
     def incr_process_total(self, label_name_path):
-        if "valida" in label_name_path:
+        if self.data_sets_valida_path in label_name_path:
             self.valida_data_process_total += 1
-        elif "origin" in label_name_path:
+        elif self.data_sets_origin_path in label_name_path:
             self.train_data_process_total += 1
         self.print_process_log((self.get_process_data_total() % 500 == 0))
 
@@ -107,6 +107,13 @@ class LoadImageData():
         try:
             save_path = image_until.save_image(url, coin_item["版别"], label_name_path)
             if file.file_exists(save_path, False):
+                if self.data_sets_origin_path in label_name_path:
+                    back_label_name_path = label_name_path.replace(self.data_sets_origin_path,
+                                                                   self.data_sets_backup_path)
+                    file.mkdir(back_label_name_path)
+                    back_label_name_path = save_path.replace(label_name_path, back_label_name_path)
+                    shutil.copyfile(save_path, back_label_name_path)
+
                 image_until.image_gray(save_path)
                 scale_img, is_ok = image_until.scale_img(save_path)
                 if is_ok:
@@ -130,9 +137,10 @@ class LoadImageData():
     def mk_output_dir(self):
         data_sets_origin_path = os.path.join(self.output_path, "origin")
         data_sets_valida_path = os.path.join(self.output_path, "valida")
-        paths = [data_sets_origin_path, data_sets_valida_path]
+        data_sets_backup_path = os.path.join(self.output_path, "backup")
+        paths = [data_sets_origin_path, data_sets_valida_path, data_sets_backup_path]
         file.mkdir_list(paths)
-        return [data_sets_origin_path, data_sets_valida_path]
+        return paths
 
 
 if __name__ == "__main__":

@@ -26,8 +26,6 @@ echo "sh脚本路径:${sh_root_path}"
 #验证代码路径
 export valid_root_path=${root_path}"/valid"
 echo "验证代码路径:${valid_root_path}"
-export  CUDA=0,1,2,3,4,5,6,7
-echo "加载显卡:{CUDA}"
 if [ $# -ne  1 ]; then
   echo "未输入name"
 fi

@@ -68,16 +68,17 @@ def load_and_check_file(file_path):
 def merge_execl(train_execl_path, execl_merge_path):
     paths = os.listdir(execl_merge_path)
     original_df = pd.read_excel(train_execl_path)
+    concat = [
+        original_df
+    ]
+    original_df_col = original_df.columns.tolist()
     for path in paths:
         full_path = os.path.join(execl_merge_path, path)
         if not full_path.endswith('.xlsx'):
             continue
         print_with_timestamp(f"合并{full_path}到训练文件:{train_execl_path}")
         target_df = pd.read_excel(full_path, header=0)
-        original_df = original_df._append(target_df, ignore_index=True)
-
-    with pd.ExcelWriter(train_execl_path, engine='xlsxwriter') as writer:
-        original_df.to_excel(writer, index=False)
-    df = pd.read_excel(train_execl_path)
-    deduplicated_df = df.drop_duplicates()
-    deduplicated_df.to_excel(train_execl_path, index=False)
+        if original_df_col != target_df.columns.tolist():
+            target_df = target_df.reindex(columns=original_df_col)
+        concat.append(target_df)
+    pd.concat(concat, ignore_index=True).drop_duplicates().to_excel(train_execl_path, index=False)

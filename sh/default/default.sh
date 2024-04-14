@@ -33,7 +33,7 @@ if [ $op -gt 0 ]; then
 fi
 #############################数据处理#############################
 #识别类别个数
-export num_classes=$(ls ${train_image_path} | wc -l)
+num_classes=$(ls ${train_image_path} | wc -l)
 echo "识别类别个数:${num_classes}"
 ############################训练###################################
 master_port=20001
@@ -46,7 +46,7 @@ img_size=416
 batch_size=32
 if [ "${model}" == 'tf_efficientnet_b8.ap_in1k' ]; then
   img_size=672
-   batch_size=6
+  batch_size=6
 fi
 
 #############################训练#################################
@@ -54,6 +54,14 @@ echo "是否重新训练 1-是  0-不操作 (默认-${default_op})"
 read -t 3 -p "输入你的操作:" op
 op=${op:-${default_op}}
 if [ $op -gt 0 ]; then
+
+source ${sh_root_path}/cuda.sh
+  # 检查 selected_gpu 是否为空
+if [ -z "$CUDA" ]; then
+    echo "没有找到满足条件的 GPU。"
+    exit 1
+fi
+
 CUDA_VISIBLE_DEVICES=${CUDA} python3 -m torch.distributed.launch --nproc_per_node=$(echo "${CUDA}" | awk -F',' '{print NF}') --master_port=${master_port} --use_env \
   ${train_process_root_path}/train_add_loss.py ${output_path}\
       --num-classes "${num_classes}"\
