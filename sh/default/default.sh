@@ -54,9 +54,7 @@ echo "是否重新训练 1-是  0-不操作 (默认-${default_op})"
 read -t 3 -p "输入你的操作:" op
 op=${op:-${default_op}}
 if [ $op -gt 0 ]; then
-# python3 -u \
-CUDA=0,1,2,3,4,5,6,7
-CUDA_VISIBLE_DEVICES=${CUDA} python3 -m torch.distributed.launch --nproc_per_node=$(echo "$CUDA" | awk -F',' '{print NF}') --master_port=${master_port} --use_env \
+CUDA_VISIBLE_DEVICES=${CUDA} python3 -m torch.distributed.launch --nproc_per_node=$(echo "${CUDA}" | awk -F',' '{print NF}') --master_port=${master_port} --use_env \
   ${train_process_root_path}/train_add_loss.py ${output_path}\
       --num-classes "${num_classes}"\
       --model ${model} \
