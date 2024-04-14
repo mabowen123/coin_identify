@@ -11,5 +11,4 @@ gevent
 requests
 torchvision
 torch
-timm
 pyyaml

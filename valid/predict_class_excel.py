@@ -24,8 +24,8 @@ class PredictExecl():
         self.index_path = param.index_path if param.index_path else os.path.join(
             os.path.dirname(self.valida_execl_path), "index.txt")
         self.url = param.url
-        self.need_run_valida_server()
         self.classify_run_port = file.get_classify_run_port()
+        self.need_run_valida_server()
 
     def need_run_valida_server(self):
         if not self.is_local():
