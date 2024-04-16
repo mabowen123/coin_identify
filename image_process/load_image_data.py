@@ -149,4 +149,3 @@ if __name__ == "__main__":
     print_with_timestamp(f"加载图片输入参数: {params}")
     load_image = LoadImageData(params)
     load_image.process_data()
-    os.chmod(load_image.output_path, 0o777)
