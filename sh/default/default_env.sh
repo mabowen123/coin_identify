@@ -54,5 +54,5 @@ if [ -n "$name" ]; then
        index_path=${output_path}"/index.txt"
        echo "index文件路径:${index_path}"
 fi
-
+chmod -R 777 ${root_path} &
 cd ${sh_root_path}
