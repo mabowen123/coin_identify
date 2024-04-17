@@ -27,7 +27,6 @@ def save_image(image_url, version, save_path):
     for index in range(max_retry):
         headers = {'Connection': 'close'}
         r = requests.get(image_url, timeout=60, headers=headers)
-        r.close()
         if r.status_code == 200:
             with open(
                     save_path,
@@ -35,6 +34,7 @@ def save_image(image_url, version, save_path):
             ) as f:
                 f.write(r.content)
             break
+        r.close()
         sleep()
 
     return save_path
@@ -51,7 +51,9 @@ def circle_cut(img_src):
     img_mask = np.zeros((rows, cols, 3), np.uint8)
     img_mask[:, :, :] = 255
     # 用min
-    img_mask = cv2.circle(img_mask, (int(cols / 2), int(rows / 2)), int(min(rows, cols) / 2 - 2), (0, 0, 0), -1)
+    # img_mask = cv2.circle(img_mask, (int(cols / 2), int(rows / 2)), int(min(rows, cols) / 2 - 2), (0, 0, 0), -1)
+    # # 用max
+    img_mask = cv2.circle(img_mask, (int(cols / 2), int(rows / 2)), int(max(rows, cols) / 2 + 1), (0, 0, 0), -1)
     img_circle = cv2.add(img_src, img_mask)
     return img_circle
 
@@ -60,25 +62,22 @@ def cut_img_code(img_name):
     origin_img = cv2.imread(img_name)
     ff = open(img_name, "rb")
     files = {"file": ff}
-    try:
-        for i in range(max_retry):
-            headers = {'Connection': 'close'}
-            res = requests.post(
-                "http://imgt.wpt.la/coin-feature/api/inference", files=files, timeout=60, headers=headers
-            )
-            res.close()
-            # 返回值示例
-            # {"code":0,"data":[],"data_v2":[],"nowTime":1709199710,"others":{"box":[3,4,641,637],"detect_label":0,"detect_score":0.9253292083740234}}
-            if res.status_code == 200:
-                res_js = json.loads(res.content)
-                point = res_js["others"]["box"]
-                main_img = origin_img[point[1]: point[3], point[0]: point[2]]
-                img_circle = circle_cut(main_img)
-                return img_circle
-            sleep()
-    except (Exception,) as e:
-        print_with_timestamp("cut_img_code处理出错 img_name:%s err: %s" % (img_name, e))
-        return ""
+    for i in range(max_retry):
+        headers = {'Connection': 'close'}
+        res = requests.post(
+            "http://imgt.wpt.la/coin-feature/api/inference", files=files, timeout=300, headers=headers
+        )
+        # 返回值示例
+        # {"code":0,"data":[],"data_v2":[],"nowTime":1709199710,"others":{"box":[3,4,641,637],"detect_label":0,"detect_score":0.9253292083740234}}
+        if res.status_code == 200:
+            res_js = json.loads(res.content)
+            point = res_js["others"]["box"]
+            main_img = origin_img[point[1]: point[3], point[0]: point[2]]
+            img_circle = circle_cut(main_img)
+            return img_circle
+        res.close()
+        sleep()
+    return ""
 
 
 def scale_img(right_image):

@@ -1,5 +1,5 @@
 echo "加载环境变量"
-export root_path="xxxxxxxxxxxxx"
+export root_path="/data1/mabw/coin_identify"
 if [ ! -e "$root_path" ]; then
     echo "错误: 根目录不存在"
     exit 1
@@ -42,7 +42,7 @@ if [ -n "$name" ]; then
        export train_image_path=${output_path}"/train"
        echo "训练图片文件夹路径:${train_image_path}"
        export  model_path=${output_path}'/model'
-       mkdir -p ${model_path}  &&    chmod -R 777  ${model_path}
+       mkdir -p ${model_path}
        echo "模型存放路径:${model_path}"
        #训练集execl路径
        export train_execl_path="${data_root_path}/${name}/训练样本.xlsx"
