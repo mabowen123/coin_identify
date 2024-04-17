@@ -5,6 +5,7 @@
 datasets/*
 log/*
 /sh/*
+/until/*
 !sh/default
 coin_Identify.iml
 config.yaml
