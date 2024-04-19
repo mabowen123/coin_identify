@@ -48,6 +48,7 @@ class DivideData():
             dir_path = os.path.join(self.file_path, label_name)
             if os.path.isdir(dir_path):
                 self.executor.submit(self.process, dir_path, label_name)
+        self.executor.shutdown(wait=True)
 
     def print_train_num_too_short_list(self):
         if len(self.train_num_too_short) > 0:
@@ -63,8 +64,10 @@ class DivideData():
             script_path = os.path.join(script_directory, "./rotate_pic.py")
             # 使用 subprocess 模块运行另一个 Python 脚本
             try:
-                sub = subprocess.Popen(["python3", script_path, "--rotate_pic_path_list", str_result])
+                sub = subprocess.Popen(
+                    ["python3", script_path, "--rotate_pic_path_list", str_result, "--rotate_angle", str(self.rotate_angle)])
                 sub.wait()
+                self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=self.max_threads_num)
                 self.divide_datasets()
             except subprocess.CalledProcessError as e:
                 print(f"脚本执行失败: {e}")
@@ -102,7 +105,5 @@ if __name__ == "__main__":
     divide = DivideData(params)
     divide.divide_datasets()
     divide.print_train_num_too_short_list()
-    os.chmod(divide.divide_path, 0o777)
-    divide.executor.shutdown(wait=True)
     time.sleep(3)
     divide.save_index()

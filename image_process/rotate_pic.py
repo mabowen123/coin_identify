@@ -66,4 +66,4 @@ if __name__ == "__main__":
     rotatePic.rotate()
     rotatePic.executor.shutdown(wait=True)
     rotatePic.del_redundant_pic()
-    print_with_timestamp(f"处理结束: {params}")
+    print_with_timestamp(f"处理结束")
