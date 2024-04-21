@@ -15,8 +15,10 @@ from tool.print import print_with_timestamp
 max_retry = 5
 
 
-def sleep():
-    time.sleep(random.randint(1, 5))
+def sleep(i):
+    if i <= 0:
+        i = 1
+    time.sleep(random.randint(i * 1, i * 5))
 
 
 def save_image(image_url, version, save_path):
@@ -35,7 +37,7 @@ def save_image(image_url, version, save_path):
                 f.write(r.content)
             break
         r.close()
-        sleep()
+        sleep(index)
 
     return save_path
 
@@ -76,7 +78,7 @@ def cut_img_code(img_name):
             img_circle = circle_cut(main_img)
             return img_circle
         res.close()
-        sleep()
+        sleep(i)
     return ""
 
 
