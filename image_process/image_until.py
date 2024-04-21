@@ -26,7 +26,7 @@ def save_image(image_url, version, save_path):
     save_path = os.path.join(save_path, f"{version}_{img_id}.jpg")
     for index in range(max_retry):
         headers = {'Connection': 'close'}
-        r = requests.get(image_url, timeout=60, headers=headers)
+        r = requests.get(image_url, timeout=300, headers=headers)
         if r.status_code == 200:
             with open(
                     save_path,
