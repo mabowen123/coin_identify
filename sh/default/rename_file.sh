@@ -29,6 +29,12 @@ for file in "$directory"/*; do
             mv "$file" "$new_name"  # 重命名文件
             echo "Renamed '$file' to '${file%/*}/验证样本.${file##*.}'"
         fi
+
+        if [[ "$file" == *映射* ]]; then  # 检查文件名中是否包含 "测试"
+             new_name="${file%/*}/index_map.${file##*.}" # 替换文件名为 "训练样本"
+             mv "$file" "$new_name"  # 重命名文件
+             echo "Renamed '$file' to '${file%/*}/index_map.${file##*.}'"
+        fi
     fi
 done
 echo "Renaming complete."

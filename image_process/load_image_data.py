@@ -27,6 +27,8 @@ class LoadImageData():
         self.max_threads_num = params.max_threads_num
         # 判断是否可合并execl
         self.merge_execl()
+        self.coin_type = load_execl.get_coin_type(self.output_path)
+        print_with_timestamp(f"------- 钱币的年代为 {self.coin_type} --------")
         # 前置校验execl文件
         self.load_and_check_file()
         # 创建出 原图/验证的文件夹
@@ -55,8 +57,8 @@ class LoadImageData():
     # 获取execl 数据 分发线程处理
     def process_data(self):
         # 处理训练集execl 获取数据 创建文件夹
-        train_data, self.train_data_total = load_execl.map_execl_to_load_image(self.train_execl_path)
-        valida_data, self.valida_data_total = load_execl.map_execl_to_load_image(self.valida_execl_path)
+        train_data, self.train_data_total = load_execl.map_execl_to_load_image(self.train_execl_path, self.coin_type)
+        valida_data, self.valida_data_total = load_execl.map_execl_to_load_image(self.valida_execl_path, self.coin_type)
         res = {
             self.data_sets_origin_path: train_data,
             self.data_sets_valida_path: valida_data,
@@ -101,9 +103,15 @@ class LoadImageData():
     def get_data_total(self):
         return self.train_data_total + self.valida_data_total
 
+    def getImgUrl(self, coin_item):
+        url = coin_item["正面图片"]
+        if self.coin_type == 'ns' and coin_item['版别位置'] == '背面':
+            url = coin_item['反面图片']
+        return url
+
     # 线程处理
     def threads_process(self, coin_item, label_name_path):
-        url = coin_item["正面图片"]
+        url = self.getImgUrl(coin_item)
         try:
             save_path = image_until.save_image(url, coin_item["版别"], label_name_path)
             if file.file_exists(save_path, False):
@@ -131,7 +139,7 @@ class LoadImageData():
             self.valida_execl_path
         ]
         for path in paths:
-            load_execl.load_and_check_file(path)
+            load_execl.load_and_check_file(path, self.coin_type)
 
     # 新建输出文件
     def mk_output_dir(self):
