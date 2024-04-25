@@ -7,7 +7,7 @@ import pandas as pd
 from tool.print import print_with_timestamp
 
 
-def map_execl_to_load_image(file_path, coin_type):
+def map_execl_to_load_image(file_path, coin_type, label_key='版别分类'):
     df = pd.read_excel(file_path, header=0, index_col=False)
     res = dict()
     for index, row in df.iterrows():
@@ -20,8 +20,8 @@ def map_execl_to_load_image(file_path, coin_type):
             label_name = coin_class + "_" + value + "_" + big_class
             item["label_name"] = label_name
         elif coin_type == 'ns':
-            label_name = item["版别分类"]
-            item["label_name"] = item["版别分类"]
+            label_name = item[label_key]
+            item["label_name"] = label_name
         else:
             print_with_timestamp("异常的版别分类")
             exit()

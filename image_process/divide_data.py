@@ -8,6 +8,8 @@ import sys
 import concurrent.futures
 import time
 
+import pandas as pd
+
 sys.path.append("../")
 
 from options import divide_options as divideOpt
@@ -38,9 +40,58 @@ class DivideData():
 
     def save_index(self):
         b = timm.data.create_dataset(name="test", root=self.train_datasets_path)
-        with open(os.path.join(self.divide_path, "index.txt"), 'w') as f:
+        index_path = os.path.join(self.divide_path, "index.txt")
+        with open(index_path, 'w') as f:
             for k, v in b.reader.class_to_idx.items():
                 f.write(str(k) + "\n")
+        index_map_path = os.path.join(self.divide_path, "index_map.xlsx")
+        if file.file_exists(index_map_path):
+            self.index_change(index_map_path, index_path)
+
+    def index_change(self, id_map_excel_path, index_path):
+        df = pd.read_excel(id_map_excel_path, sheet_name="Sheet1")
+        id_name_dict = {}
+        for index, item in df.iterrows():
+            id_1 = str(item["正面特征"])
+            id_2 = str(item["反面特征"])
+            coin_id = item["版别"]
+            rank_label = item["输出顺序"]
+
+            if id_1 not in id_name_dict:
+                id_name_dict[id_1] = []
+
+            if [rank_label, coin_id] in id_name_dict[id_1]:
+                continue
+
+            id_name_dict[id_1].append([rank_label, coin_id])
+
+            if id_2 not in id_name_dict:
+                id_name_dict[id_2] = []
+
+            if [rank_label, coin_id] in id_name_dict[id_2]:
+                continue
+
+            id_name_dict[id_2].append([rank_label, coin_id])
+
+        res = {}
+        for item in id_name_dict:
+            index_list = id_name_dict[item]
+            index_list_students = sorted(index_list, key=lambda index_list: index_list[0])
+            res[item] = ";".join([str(tt[1]) for tt in index_list_students])
+
+        index_map = {}
+        index = 0
+        for line in open(index_path):
+            value = line.strip()
+            if value not in res:
+                print(value, ":id映射表中不包含该id，请确认数据")
+                return
+            index_map[index] = res[value]
+            index += 1
+        print(index_map)
+        with open(os.path.join(self.divide_path, "index_map.txt"), 'w') as f:
+            for k, v in index_map.items():
+                f.write(str(v) + "\n")
 
     def divide_datasets(self):
         dirs = os.listdir(self.file_path)
@@ -65,7 +116,8 @@ class DivideData():
             # 使用 subprocess 模块运行另一个 Python 脚本
             try:
                 sub = subprocess.Popen(
-                    ["python3", script_path, "--rotate_pic_path_list", str_result, "--rotate_angle", str(self.rotate_angle)])
+                    ["python3", script_path, "--rotate_pic_path_list", str_result, "--rotate_angle",
+                     str(self.rotate_angle)])
                 sub.wait()
                 self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=self.max_threads_num)
                 self.divide_datasets()
