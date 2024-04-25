@@ -10,6 +10,7 @@ train_execl_path = "/Users/mabowen/Downloads/南宋-样本/嘉熙通宝测试集
 index_execl_df = pd.read_excel(index_execl_path)
 front_feature = index_execl_df["正面特征"].to_list()
 back_feature = index_execl_df["反面特征"].to_list()
+map_version = set(index_execl_df["版别"].to_list())
 
 # 读取验证集的版别分类是不是和训练集相等
 paths = [validate_execl_path, train_execl_path]
@@ -17,11 +18,12 @@ dict_data = {}
 all_key = []
 front_pic_dict = {}
 back_pic_dict = {}
-for path in paths:
+
+version_data_set = set([])
+for inx, path in enumerate(paths):
     basename = os.path.basename(path)
     df = pd.read_excel(path)
     for index, item in df.iterrows():
-
         feature = back_feature
         if item['版别位置'] == "正面":
             feature = front_feature
@@ -35,18 +37,30 @@ for path in paths:
             else:
                 back_pic_dict[item["反面图片"]] += 1
         else:
-            print(f"---- {basename} 出现 版别位置除了正面和背面的数据 {item["版别位置"]} ----")
+            print(f"---- {basename} 出现 版别位置除了正面和背面的数据 {item['版别位置']} ----")
 
         if item["版别分类"] not in feature:
-            print(f"---- {basename} 出现不存在映射表的版别分类 {item["版别分类"]} ----")
+            print(f"---- {basename} 出现不存在映射表的版别分类 {item['版别分类']} ----")
 
     col_data = df["版别分类"]
+    if inx == 1:
+        tmp_version = df["版别"]
+        version_data_set = version_data_set | set(tmp_version.to_list())
+
     val_count = col_data.value_counts().to_dict()
     print(f"{basename} 类别个数:{len(val_count)}")
     for key in val_count.keys():
         if key not in all_key:
             all_key.append(key)
     dict_data[basename] = val_count
+
+# mvDiff = map_version - version_data_set
+# if mvDiff:
+#     print("以下版别在映射中存在 测试版别不存在", mvDiff)
+
+vmDiff = version_data_set - map_version
+if vmDiff:
+    print("以下版别在测试版别存在 映射版别不存在", vmDiff)
 
 for pic in set(back_pic_dict.keys()).intersection(set(front_pic_dict.keys())):
     print(f"---- {pic} 既存在正面图内也存在反面图内 ----")
@@ -62,6 +76,10 @@ for pic, count in front_pic_dict.items():
 
 res = {}
 print("\n")
+
+# print("版别分类 all_key=", all_key)
+
+# print("dict_data=",dict_data)
 for key in all_key:
     if key not in res:
         res[key] = {}

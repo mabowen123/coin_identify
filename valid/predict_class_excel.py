@@ -111,14 +111,14 @@ class PredictExecl():
                     else:
                         label_dist[label_name]["error"] += 1
                         error += 1
-                    print(
-                        fr'{predict_name[0] == label_name}【excel】标注:{label_name}【分析后】版别:{predict_name[0]} 得分:{cls_score}【背面单独】版别:{predict_label_c2[:3]} 得分:{predict_score2[:3]} 背面图:{back_img}')
-
-                    for finish_name, values in label_dist.items():
                         print(
-                            f"类别={finish_name}, 预测正确={values['right']}, percentage={values['right'] / (values['all'])}, no_process={values['no_process']}, 样本量={values['all']}")
+                            fr'{predict_name[0] == label_name}【excel】标注:{label_name}【分析后】版别:{predict_name[0]} 得分:{cls_score}【背面单独】版别:{predict_label_c2[:3]} 得分:{predict_score2[:3]} 背面图:{back_img}')
 
-                    print(f'result: right={right},  all={right + error}, percentage={right / (right + error)}')
+        for finish_name, values in label_dist.items():
+            print(
+                f"类别={finish_name}, 预测正确={values['right']}, percentage={values['right'] / (values['all'])}, no_process={values['no_process']}, 样本量={values['all']}")
+
+        print(f'result: right={right},  all={right + error}, percentage={right / (right + error)},no_process={no_process}"')
 
 
     def merge_two_pic_res(self, predict_label_ori_1, predict_score_1, predict_label_ori_2, predict_score_2,
