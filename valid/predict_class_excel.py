@@ -97,7 +97,7 @@ class PredictExecl():
                         predict_label_c2, predict_score2 = self.request_server(self.get_req_url(back_img))
                     else:
                         predict_label_c1, predict_score1 = self.request_server(self.get_req_url(front_img, back_img))
-                        predict_label_c2, predict_score2 = ["", "", "", "", ""],[0, 0, 0, 0, 0]
+                        predict_label_c2, predict_score2 = ["", "", "", "", ""], [0, 0, 0, 0, 0]
 
                     predict_name, cls_score = self.merge_two_pic_res(predict_label_c1, predict_score1, predict_label_c2,
                                                                      predict_score2)
@@ -111,15 +111,15 @@ class PredictExecl():
                     else:
                         label_dist[label_name]["error"] += 1
                         error += 1
-                        print(
+                        print_with_timestamp(
                             fr'{predict_name[0] == label_name}【excel】标注:{label_name}【分析后】版别:{predict_name[0]} 得分:{cls_score}【背面单独】版别:{predict_label_c2[:3]} 得分:{predict_score2[:3]} 背面图:{back_img}')
 
         for finish_name, values in label_dist.items():
-            print(
+            print_with_timestamp(
                 f"类别={finish_name}, 预测正确={values['right']}, percentage={values['right'] / (values['all'])}, no_process={values['no_process']}, 样本量={values['all']}")
 
-        print(f'result: right={right},  all={right + error}, percentage={right / (right + error)},no_process={no_process}"')
-
+        print_with_timestamp(
+            f'result: right={right},  all={right + error}, percentage={right / (right + error)},no_process={no_process}')
 
     def merge_two_pic_res(self, predict_label_ori_1, predict_score_1, predict_label_ori_2, predict_score_2,
                           threshold=0.2):
@@ -161,7 +161,6 @@ class PredictExecl():
             cls_score = predict_score_1[0]
         return label_name, cls_score
 
-
     def bs(self, res):
         label_dist = {}
         no_process, right, error = 0, 0, 0
@@ -201,7 +200,6 @@ class PredictExecl():
         print_with_timestamp(
             f"result: right={right},  all={right + error}, percentage={right / (right + error + 1)},no_process={no_process}"
         )
-
 
     def request_server(self, url):
         predict_label = ["", "", "", "", ""]
