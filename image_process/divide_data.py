@@ -54,7 +54,7 @@ class DivideData():
         for index, item in df.iterrows():
             id_1 = str(item["正面特征"])
             id_2 = str(item["反面特征"])
-            coin_id = item["版别"]
+            coin_id = item["版别ID"]
             rank_label = item["输出顺序"]
 
             if id_1 not in id_name_dict:

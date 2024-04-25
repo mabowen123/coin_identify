@@ -72,7 +72,7 @@ class PredictExecl():
         return url
 
     def valida(self):
-        res, _ = load_execl.map_execl_to_load_image(self.valida_execl_path, self.coin_type, '版别')
+        res, _ = load_execl.map_execl_to_load_image(self.valida_execl_path, self.coin_type, '版别ID')
         print_with_timestamp("-------------------验证开始---------------")
         if self.coin_type == 'bs':
             self.bs(res)

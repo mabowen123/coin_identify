@@ -10,6 +10,8 @@ from tool.print import print_with_timestamp
 def map_execl_to_load_image(file_path, coin_type, label_key='版别分类'):
     df = pd.read_excel(file_path, header=0, index_col=False)
     res = dict()
+    if coin_type == 'ns':
+        df = df.dropna(subset=[label_key])
     for index, row in df.iterrows():
         # 直接是execl 的 字典
         item = row.to_dict()
