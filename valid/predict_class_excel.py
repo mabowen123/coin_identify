@@ -119,7 +119,7 @@ class PredictExecl():
                     label_dist[label_name]["error"] += 1
                     error += 1
                     print_with_timestamp(
-                        fr'{predict_name[0] == label_name}【excel】标注:{label_name}【分析后】版别:{predict_name[0]} 得分:{cls_score}【背面单独】版别:{predict_label_c2[:3]} 得分:{predict_score2[:3]} 背面图:{back_img}')
+                        fr'{predict_name[0] == label_name}【excel】标注:{label_name}【分析后】版别:{predict_name[0]} 得分:{cls_score}【背面单独】版别:{predict_label_c1[:3]} 得分:{predict_score1[:3]} 背面图:{front_img}')
 
         for finish_name, values in label_dist.items():
             print_with_timestamp(

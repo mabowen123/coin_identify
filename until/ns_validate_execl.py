@@ -10,7 +10,7 @@ train_execl_path = "/Users/mabowen/Downloads/南宋-样本/嘉熙通宝测试集
 index_execl_df = pd.read_excel(index_execl_path)
 front_feature = index_execl_df["正面特征"].to_list()
 back_feature = index_execl_df["反面特征"].to_list()
-map_version = set(index_execl_df["版别"].to_list())
+map_version = set(index_execl_df["版别ID"].to_list())
 
 # 读取验证集的版别分类是不是和训练集相等
 paths = [validate_execl_path, train_execl_path]
@@ -44,7 +44,7 @@ for inx, path in enumerate(paths):
 
     col_data = df["版别分类"]
     if inx == 1:
-        tmp_version = df["版别"]
+        tmp_version = df["版别ID"]
         version_data_set = version_data_set | set(tmp_version.to_list())
 
     val_count = col_data.value_counts().to_dict()
