@@ -84,35 +84,42 @@ class PredictExecl():
 
     def ns(self, res):
         label_dist = {}
+        req_img_url = []
         no_process, right, error = 0, 0, 0
         for label_name, coin_item in res.items():
             if label_name not in label_dist:
                 label_dist[label_name] = {'right': 0, 'error': 0, 'no_process': 0, 'all': 0}
-                for item in coin_item:
-                    label_dist[label_name]["all"] += 1
-                    front_img = item['正面图片']
-                    back_img = item['反面图片']
-                    if self.is_local():
-                        predict_label_c1, predict_score1 = self.request_server(self.get_req_url(front_img))
-                        predict_label_c2, predict_score2 = self.request_server(self.get_req_url(back_img))
-                    else:
-                        predict_label_c1, predict_score1 = self.request_server(self.get_req_url(front_img, back_img))
-                        predict_label_c2, predict_score2 = ["", "", "", "", ""], [0, 0, 0, 0, 0]
+            for item in coin_item:
+                front_img = item['正面图片']
+                back_img = item['反面图片']
+                img_url_str = front_img + back_img
+                if img_url_str in req_img_url:
+                    continue
+                req_img_url.append(img_url_str)
+                label_dist[label_name]["all"] += 1
+                if self.is_local():
+                    predict_label_c1, predict_score1 = self.request_server(self.get_req_url(front_img))
+                    predict_label_c2, predict_score2 = self.request_server(self.get_req_url(back_img))
+                else:
+                    predict_label, predict_score = self.request_server(self.get_req_url(front_img, back_img))
+                    predict_label_c1, predict_label_c2 = predict_label
+                    predict_score1, predict_score2 = predict_score
 
-                    predict_name, cls_score = self.merge_two_pic_res(predict_label_c1, predict_score1, predict_label_c2,
-                                                                     predict_score2)
-                    if predict_name[0] == "":
-                        label_dist[label_name]["no_process"] += 1
-                        no_process += 1
-                        continue
-                    if predict_name[0] == label_name:
-                        label_dist[label_name]["right"] += 1
-                        right += 1
-                    else:
-                        label_dist[label_name]["error"] += 1
-                        error += 1
-                        print_with_timestamp(
-                            fr'{predict_name[0] == label_name}【excel】标注:{label_name}【分析后】版别:{predict_name[0]} 得分:{cls_score}【背面单独】版别:{predict_label_c2[:3]} 得分:{predict_score2[:3]} 背面图:{back_img}')
+                predict_name, cls_score = self.merge_two_pic_res(predict_label_c1, predict_score1, predict_label_c2,
+                                                                 predict_score2)
+
+                if predict_name[0] == "":
+                    label_dist[label_name]["no_process"] += 1
+                    no_process += 1
+                    continue
+                if predict_name[0] == label_name:
+                    label_dist[label_name]["right"] += 1
+                    right += 1
+                else:
+                    label_dist[label_name]["error"] += 1
+                    error += 1
+                    print_with_timestamp(
+                        fr'{predict_name[0] == label_name}【excel】标注:{label_name}【分析后】版别:{predict_name[0]} 得分:{cls_score}【背面单独】版别:{predict_label_c2[:3]} 得分:{predict_score2[:3]} 背面图:{back_img}')
 
         for finish_name, values in label_dist.items():
             print_with_timestamp(
@@ -212,6 +219,9 @@ class PredictExecl():
             elif self.is_local():
                 predict_label = res_js["data"]
                 predict_score = res_js["cls_score"]
+            elif "pic2" in url:
+                predict_label = [res_js['others']['predict_label_1'], res_js['others']['predict_label_2']]
+                predict_score = [res_js['others']['predict_score_1'], res_js['others']['predict_score_2']]
             else:
                 predict_label = res_js["others"]["coin_list"]
                 predict_score = res_js["others"]["score_list"]
