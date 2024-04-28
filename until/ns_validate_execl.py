@@ -39,6 +39,9 @@ for inx, path in enumerate(paths):
         else:
             print(f"---- {basename} 出现 版别位置除了正面和背面的数据 {item['版别位置']} ----")
 
+        if "weipaitang" not in item["正面图片"] or "weipaitang" not in item['反面图片']:
+            print("-------存在不属于wpt的域名图片---------")
+
         if item["版别分类"] not in feature:
             print(f"---- {basename} 出现不存在映射表的版别分类 {item['版别分类']} ----")
 
