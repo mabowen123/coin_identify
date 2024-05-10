@@ -2,9 +2,9 @@ import os
 
 import pandas as pd
 
-index_execl_path = "/Users/mabowen/Downloads/南宋-样本/嘉熙通宝映射表.xlsx"
-validate_execl_path = "/Users/mabowen/Downloads/南宋-样本/嘉熙通宝训练集.xlsx"
-train_execl_path = "/Users/mabowen/Downloads/南宋-样本/嘉熙通宝测试集.xlsx"
+index_execl_path = "/Users/mabowen/Downloads/顺治通宝/顺治通宝映射表4301.xlsx"
+train_execl_path = "/Users/mabowen/Downloads/顺治通宝/顺治通宝训练集5091.xlsx"
+validate_execl_path = "/Users/mabowen/Downloads/顺治通宝/顺治通宝测试集5091.xlsx"
 
 # 读取映射表 正反面特征
 index_execl_df = pd.read_excel(index_execl_path)
@@ -46,7 +46,7 @@ for inx, path in enumerate(paths):
             print(f"---- {basename} 出现不存在映射表的版别分类 {item['版别分类']} ----")
 
     col_data = df["版别分类"]
-    if inx == 1:
+    if inx == 2:
         tmp_version = df["版别ID"]
         version_data_set = version_data_set | set(tmp_version.to_list())
 
