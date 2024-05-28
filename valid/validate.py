@@ -460,14 +460,6 @@ def validate(args):
         load_bytes=args.tf_preprocessing,
         class_map=args.class_map,
     )
-
-    #     b =timm.data.create_dataset(name='test',root='/gpu1-data/datasets/old_coin_class/class_train/横竖cut4_character/宝/val/')
-    # c = b.reader
-    # index = {v: k for k, v in c.class_to_idx.items()}
-    index = {v: k for k, v in dataset.reader.class_to_idx.items()}
-
-    # print(index)
-
     if args.valid_labels:
         with open(args.valid_labels, "r") as f:
             valid_labels = {int(line.rstrip()) for line in f}

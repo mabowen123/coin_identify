@@ -28,6 +28,12 @@ class PredictExecl():
         self.classify_run_port = file.get_classify_run_port()
         self.need_run_valida_server()
 
+    def kill_port(self):
+        if not self.is_local():
+            return True
+        print_with_timestamp("正在启动验证服务,请稍等")
+        netstat.kill_process_using_port(self.classify_run_port)
+
     def need_run_valida_server(self):
         if not self.is_local():
             return True
@@ -119,14 +125,14 @@ class PredictExecl():
                     label_dist[label_name]["error"] += 1
                     error += 1
                     print_with_timestamp(
-                        fr'{predict_name[0] == label_name}【excel】标注:{label_name}【分析后】版别:{predict_name[0]} 得分:{cls_score}【背面单独】版别:{predict_label_c1[:3]} 得分:{predict_score1[:3]} 背面图:{front_img}')
+                        f"{predict_name[0] == label_name} {label_name}->{predict_name[0]} \n【正面】版别:{predict_label_c1[:3]} 得分:{predict_score1[:3]} \n【背面】版别:{predict_label_c2[:3]} 得分:{predict_score2[:3]} \n背面图:{back_img} \n正面图:{front_img}" + "\n")
 
         for finish_name, values in label_dist.items():
             print_with_timestamp(
                 f"类别={finish_name}, 预测正确={values['right']}, percentage={values['right'] / (values['all'])}, no_process={values['no_process']}, 样本量={values['all']}")
 
         print_with_timestamp(
-            f'result: right={right},  all={right + error}, percentage={right / (right + error)},no_process={no_process}')
+            f'result: right={right},  all={right + error}, percentage={right / (right + error + 1)},no_process={no_process}')
 
     def merge_two_pic_res(self, predict_label_ori_1, predict_score_1, predict_label_ori_2, predict_score_2,
                           threshold=0.2):
@@ -187,7 +193,7 @@ class PredictExecl():
                     label_dist[label_name]["no_process"] += 1
                     no_process += 1
                     continue
-                if label_name in predict_name:
+                if label_name == predict_name:
                     label_dist[label_name]["right"] += 1
                     right += 1
                 else:
@@ -236,3 +242,4 @@ if __name__ == "__main__":
     print_with_timestamp(f"验证execl 输入参数: {params}")
     predict_execl = PredictExecl(peOpt.parse())
     predict_execl.valida()
+    predict_execl.kill_port()
