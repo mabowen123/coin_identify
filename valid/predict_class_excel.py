@@ -73,7 +73,7 @@ class PredictExecl():
         if not self.is_local() and image_url2 == '':
             url = f"http://imgt.wpt.la/ancient-coin/api/{self.url}?pic={image_url}"
         elif not self.is_local() and image_url2 != '':
-            url = f"http://imgt.wpt.la/ancient-coin/api/{self.url}?pic1={image_url}&pic2={image_url2}"
+            url = f"http://imgt.wpt.la/ancient-coin-qing/api/{self.url}?pic1={image_url}&pic2={image_url2}"
 
         return url
 
@@ -136,6 +136,9 @@ class PredictExecl():
 
     def merge_two_pic_res(self, predict_label_ori_1, predict_score_1, predict_label_ori_2, predict_score_2,
                           threshold=0.2):
+        if predict_label_ori_1[0] == 'CN0801580344' and predict_score_1[0] < 0.75 and predict_label_ori_1[
+            1] == 'CN0801580358;CN0801580251':
+            return ['CN0801580334'], predict_score_1[0]
         predict_label_1 = predict_label_ori_1[0].split(';')
         predict_label_2 = predict_label_ori_2[0].split(';')
         if predict_score_2[0] < threshold and predict_score_1[0] < threshold:
