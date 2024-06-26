@@ -2,9 +2,9 @@ import os
 
 import pandas as pd
 
-index_execl_path = "/Users/mabowen/Downloads/顺治通宝/顺治通宝映射表4301.xlsx"
-train_execl_path = "/Users/mabowen/Downloads/顺治通宝/顺治通宝训练集5091.xlsx"
-validate_execl_path = "/Users/mabowen/Downloads/顺治通宝/顺治通宝测试集5091.xlsx"
+index_execl_path = "/Users/mabowen/Downloads/至道元宝/至道元宝映射表.xlsx"
+train_execl_path = "/Users/mabowen/Downloads/至道元宝/至道元宝训练集626.xlsx"
+validate_execl_path = "/Users/mabowen/Downloads/至道元宝/至道元宝测试集626.xlsx"
 
 # 读取映射表 正反面特征
 index_execl_df = pd.read_excel(index_execl_path)
@@ -39,7 +39,7 @@ for inx, path in enumerate(paths):
         else:
             print(f"---- {basename} 出现 版别位置除了正面和背面的数据 {item['版别位置']} ----")
 
-        if "weipaitang" not in item["正面图片"] or "weipaitang" not in item['反面图片']:
+        if "weipaitang" not in item["正面图片"] or ("反面图片" in item and "weipaitang" not in item['反面图片']):
             print("-------存在不属于wpt的域名图片---------")
 
         if item["版别分类"] not in feature:
