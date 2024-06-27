@@ -4,6 +4,7 @@ import subprocess
 import sys
 import time
 
+import pandas as pd
 import requests
 
 sys.path.append("../")
@@ -22,6 +23,7 @@ class PredictExecl():
         if not param.url and not param.model_path:
             print_with_timestamp("当--url不空时，必须提供--model_path")
             exit()
+        self.index_map_execl_path = os.path.join(os.path.dirname(self.valida_execl_path), 'index_map.xlsx')
         self.index_path = param.index_path if param.index_path else os.path.join(
             os.path.dirname(self.valida_execl_path), "index.txt" if self.coin_type == 'bs' else 'index_map.txt')
         self.url = param.url
@@ -92,6 +94,10 @@ class PredictExecl():
         label_dist = {}
         req_img_url = []
         no_process, right, error = 0, 0, 0
+        df = pd.read_excel(self.index_map_execl_path)
+        dict = {}
+        for index, row in df.iterrows():
+            dict[row["版别ID"]] = row
         for label_name, coin_item in res.items():
             if label_name not in label_dist:
                 label_dist[label_name] = {'right': 0, 'error': 0, 'no_process': 0, 'all': 0}
@@ -118,21 +124,50 @@ class PredictExecl():
                     label_dist[label_name]["no_process"] += 1
                     no_process += 1
                     continue
-                if predict_name[0] == label_name:
+                if predict_name[0] in label_name:
                     label_dist[label_name]["right"] += 1
                     right += 1
                 else:
                     label_dist[label_name]["error"] += 1
                     error += 1
                     print_with_timestamp(
-                        f"{predict_name[0] == label_name} {label_name}->{predict_name[0]} \n【正面】版别:{predict_label_c1[:3]} 得分:{predict_score1[:3]} \n【背面】版别:{predict_label_c2[:3]} 得分:{predict_score2[:3]} \n背面图:{back_img} \n正面图:{front_img}" + "\n")
+                        f"{predict_name[0] == label_name} {self.IdtoStr(dict, label_name, 3)}->{self.IdtoStr(dict, predict_name[0], 3)} \n【正面】版别:{self.IdtoStr(dict, predict_label_c1[:3], 1)} 得分:{predict_score1[:3]} \n【背面】版别:{self.IdtoStr(dict, predict_label_c2[:3], 2)} 得分:{predict_score2[:3]} \n背面图:{back_img} \n正面图:{front_img}" + "\n")
 
         for finish_name, values in label_dist.items():
             print_with_timestamp(
-                f"类别={finish_name}, 预测正确={values['right']}, percentage={values['right'] / (values['all'])}, no_process={values['no_process']}, 样本量={values['all']}")
+                f"类别={self.IdtoStr(dict, finish_name, 3)}, 预测正确={values['right']}, percentage={values['right'] / (values['all'])}, no_process={values['no_process']}, 样本量={values['all']}")
 
         print_with_timestamp(
             f'result: right={right},  all={right + error}, percentage={right / (right + error + 1)},no_process={no_process}')
+
+    def IdtoStr(self, dict, coin_id, type=1):
+        # 正面
+        if type == 1:
+            new_data = self.map_coin_id(coin_id, dict, "正面特征")
+        # 反面
+        elif type == 2:
+            new_data = self.map_coin_id(coin_id, dict, "反面特征")
+        # 具体版别
+        elif type == 3:
+            new_data = self.map_coin_id(coin_id, dict, "版别")
+        else:
+            new_data = coin_id
+        return new_data
+
+    def map_coin_id(self, coin_id, coin_dict, key):
+        new_data = []
+        is_str = isinstance(coin_id, str)
+        if is_str:
+            coin_id = [coin_id]
+        for coin_item_id in coin_id:
+            coin_item_id = coin_item_id.split(';')
+            str_arr = []
+            for id in coin_item_id:
+                str_arr.append(f"{coin_dict[id][key]}({id})")
+                new_data.append(";".join(map(str, str_arr)))
+        if is_str:
+            new_data = new_data[0]
+        return new_data
 
     def merge_two_pic_res(self, predict_label_ori_1, predict_score_1, predict_label_ori_2, predict_score_2,
                           threshold=0.2):
@@ -193,7 +228,7 @@ class PredictExecl():
                     label_dist[label_name]["no_process"] += 1
                     no_process += 1
                     continue
-                if label_name == predict_name:
+                if predict_name in label_name:
                     label_dist[label_name]["right"] += 1
                     right += 1
                 else:
