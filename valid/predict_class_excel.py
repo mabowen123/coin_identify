@@ -141,6 +141,9 @@ class PredictExecl():
             f'result: right={right},  all={right + error}, percentage={right / (right + error + 1)},no_process={no_process}')
 
     def IdtoStr(self, dict, coin_id, type=1):
+        if coin_id in ['无法识别']:
+            return coin_id
+
         # 正面
         if type == 1:
             new_data = self.map_coin_id(coin_id, dict, "正面特征")
@@ -163,7 +166,10 @@ class PredictExecl():
             coin_item_id = coin_item_id.split(';')
             str_arr = []
             for id in coin_item_id:
-                str_arr.append(f"{coin_dict[id][key]}({id})")
+                if is_str:
+                    str_arr.append(f"{coin_dict[id][key]}_{coin_dict[id]['面值']}_{coin_dict[id]['书体']}({id})")
+                else:
+                    str_arr.append(f"{coin_dict[id][key]}({id})")
                 new_data.append(";".join(map(str, str_arr)))
         if is_str:
             new_data = new_data[0]
