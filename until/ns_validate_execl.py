@@ -2,9 +2,9 @@ import os
 
 import pandas as pd
 
-index_execl_path = "/Users/mabowen/Downloads/至和重宝/至和重宝映射表.xlsx"
-train_execl_path = "/Users/mabowen/Downloads/至和重宝/至和重宝训练集6261.xlsx"
-validate_execl_path = "/Users/mabowen/Downloads/至和重宝/至和重宝测试626.xlsx"
+index_execl_path = "/Users/mabowen/Downloads/崇宁重宝/崇宁重宝映射表7081.xlsx"
+train_execl_path = "/Users/mabowen/Downloads/崇宁重宝/崇宁重宝训练集708.xlsx"
+validate_execl_path = "/Users/mabowen/Downloads/崇宁重宝/崇宁重宝测试集703.xlsx"
 
 # 读取映射表 正反面特征
 index_execl_df = pd.read_excel(index_execl_path)
@@ -13,7 +13,7 @@ back_feature = index_execl_df["反面特征"].to_list()
 map_version = set(index_execl_df["版别ID"].to_list())
 
 # 读取验证集的版别分类是不是和训练集相等
-paths = [validate_execl_path, train_execl_path]
+paths = [train_execl_path,validate_execl_path]
 dict_data = {}
 all_key = []
 front_pic_dict = {}
@@ -46,7 +46,7 @@ for inx, path in enumerate(paths):
             print(f"---- {basename} 出现不存在映射表的版别分类 {item['版别分类']} ----")
 
     col_data = df["版别分类"]
-    if inx == 2:
+    if inx == 1:
         tmp_version = df["版别ID"]
         version_data_set = version_data_set | set(tmp_version.to_list())
 

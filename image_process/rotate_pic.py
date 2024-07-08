@@ -39,6 +39,8 @@ class RotatePic():
         rotate_num = math.ceil(360 / self.rotate_angle)
         for i in range(rotate_num):
             angle = (i + 1) * self.rotate_angle
+            if angle == 360:
+                continue
             new_pic_path = pic_path.replace(file_extension, f"_rotate_angle_{angle}{file_extension}")
             img = Image.open(pic_path)
             rotated_img = img.rotate(angle)
@@ -67,3 +69,4 @@ if __name__ == "__main__":
     rotatePic.executor.shutdown(wait=True)
     rotatePic.del_redundant_pic()
     print_with_timestamp(f"处理结束")
+

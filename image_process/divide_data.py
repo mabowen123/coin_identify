@@ -120,7 +120,6 @@ class DivideData():
                      str(self.rotate_angle)])
                 sub.wait()
                 self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=self.max_threads_num)
-                self.divide_datasets()
             except subprocess.CalledProcessError as e:
                 print(f"脚本执行失败: {e}")
 
@@ -143,10 +142,13 @@ class DivideData():
         )
         train_list = os_list[:len_train_os]
         if len_train_os < self.train_min_num:
-            self.train_num_too_short.append(dir_path)
+            self.train_num_too_short.append(os.path.join(self.train_datasets_path, label_name))
 
         file.file_list_copy(train_list, dir_path, os.path.join(self.train_datasets_path, label_name))
+
         test_list = os_list[len_train_os:]
+        if len(test_list) == 0:
+            test_list = train_list
         file.file_list_copy(test_list, dir_path, os.path.join(self.test_datasets_path, label_name))
 
 
