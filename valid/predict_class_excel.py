@@ -33,7 +33,6 @@ class PredictExecl():
     def kill_port(self):
         if not self.is_local():
             return True
-        print_with_timestamp("正在启动验证服务,请稍等")
         netstat.kill_process_using_port(self.classify_run_port)
 
     def need_run_valida_server(self):
@@ -76,7 +75,6 @@ class PredictExecl():
             url = f"http://imgt.wpt.la/ancient-coin/api/{self.url}?pic={image_url}"
         elif not self.is_local() and image_url2 != '':
             url = f"http://imgt.wpt.la/ancient-coin-qing/api/{self.url}?pic1={image_url}&pic2={image_url2}"
-
         return url
 
     def valida(self):
@@ -92,6 +90,7 @@ class PredictExecl():
 
     def ns(self, res):
         label_dist = {}
+        label_dist_back = {}
         req_img_url = []
         no_process, right, error = 0, 0, 0
         df = pd.read_excel(self.index_map_execl_path)
@@ -101,6 +100,7 @@ class PredictExecl():
         for label_name, coin_item in res.items():
             if label_name not in label_dist:
                 label_dist[label_name] = {'right': 0, 'error': 0, 'no_process': 0, 'all': 0}
+                label_dist_back[label_name] = {'right': 0, 'error': 0, 'no_process': 0, 'all': 0, "print": []}
             for item in coin_item:
                 front_img = item['正面图片']
                 back_img = item['反面图片']
@@ -109,6 +109,7 @@ class PredictExecl():
                     continue
                 req_img_url.append(img_url_str)
                 label_dist[label_name]["all"] += 1
+                label_dist_back[label_name]["all"] += 1
                 if self.is_local():
                     predict_label_c1, predict_score1 = self.request_server(self.get_req_url(front_img))
                     predict_label_c2, predict_score2 = self.request_server(self.get_req_url(back_img))
@@ -116,9 +117,12 @@ class PredictExecl():
                     predict_label, predict_score = self.request_server(self.get_req_url(front_img, back_img))
                     predict_label_c1, predict_label_c2 = predict_label
                     predict_score1, predict_score2 = predict_score
-
-                predict_name, cls_score = self.merge_two_pic_res(predict_label_c1, predict_score1, predict_label_c2,
-                                                                 predict_score2)
+                predict_name, cls_score = self.merge_two_pic_res_qing(predict_label_c1, predict_score1,
+                                                                      predict_label_c2,
+                                                                      predict_score2)
+                if label_name not in predict_label_c2[0]:
+                    label_dist_back[label_name]["print"].append(
+                        f"背面错误: {self.IdtoStr(dict, label_name, 2)}, {self.IdtoStr(dict, predict_label_c2[:3], 2)} ,得分:{predict_score2[:3]} \n背面图:{back_img} \n")
 
                 if predict_name[0] == "":
                     label_dist[label_name]["no_process"] += 1
@@ -131,7 +135,7 @@ class PredictExecl():
                     label_dist[label_name]["error"] += 1
                     error += 1
                     print_with_timestamp(
-                        f"{predict_name[0] == label_name} {self.IdtoStr(dict, label_name, 3)}->{self.IdtoStr(dict, predict_name[0], 3)} \n【正面】版别:{self.IdtoStr(dict, predict_label_c1[:3], 1)} 得分:{predict_score1[:3]} \n【背面】版别:{self.IdtoStr(dict, predict_label_c2[:3], 2)} 得分:{predict_score2[:3]} \n背面图:{back_img} \n正面图:{front_img}" + "\n")
+                        f"{predict_name[0] == label_name} {self.IdtoStr(dict, label_name, 3)}->{self.IdtoStr(dict, predict_name[0], 3)} \n【正面】{self.IdtoStr(dict, label_name, 1)} 版别:{self.IdtoStr(dict, predict_label_c1[:3], 1)} 得分:{predict_score1[:3]} \n【背面】{self.IdtoStr(dict, label_name, 2)} 版别:{self.IdtoStr(dict, predict_label_c2[:3], 2)} 得分:{predict_score2[:3]} \n背面图:{back_img} \n正面图:{front_img}" + "\n")
 
         for finish_name, values in label_dist.items():
             print_with_timestamp(
@@ -139,6 +143,11 @@ class PredictExecl():
 
         print_with_timestamp(
             f'result: right={right},  all={right + error}, percentage={right / (right + error + 1)},no_process={no_process}')
+
+        print("\n")
+        for finish_name, values in label_dist_back.items():
+            for print_item in values['print']:
+                print_with_timestamp(print_item)
 
     def IdtoStr(self, dict, coin_id, type=1):
         if coin_id in ['无法识别']:
@@ -167,13 +176,56 @@ class PredictExecl():
             str_arr = []
             for id in coin_item_id:
                 if is_str:
-                    str_arr.append(f"{coin_dict[id][key]}_{coin_dict[id]['面值']}_{coin_dict[id]['书体']}({id})")
+                    str_arr.append(f"{coin_dict[id][key]}({id})")
                 else:
                     str_arr.append(f"{coin_dict[id][key]}({id})")
-                new_data.append(";".join(map(str, str_arr)))
+            new_data.append(";".join(map(str, str_arr)))
         if is_str:
             new_data = new_data[0]
         return new_data
+
+    # # # 清钱 背面容易识别，实际上线后，发现需要提供背面的权重
+    def merge_two_pic_res_qing(
+            self,
+            predict_label_ori_1,
+            predict_score_1,
+            predict_label_ori_2,
+            predict_score_2,
+            threshold=0.2,
+    ):
+        if predict_score_2[0] < threshold and predict_score_1[0] < threshold:
+            label_name = ["无法识别"]
+            cls_score = 0
+            return label_name, cls_score
+
+        predict_label_1_top1 = predict_label_ori_1[0].split(";")
+        predict_label_1_top2 = predict_label_ori_1[1].split(";")
+        # predict_label_1_top3 = predict_label_ori_1[2].split(";")
+        predict_label_1_new_list = []
+        predict_label_1_new_list.extend(predict_label_1_top1)
+        predict_label_1_new_list.extend(predict_label_1_top2)
+
+        predict_label_2_top1 = predict_label_ori_2[0].split(";")
+        predict_label_2_top2 = predict_label_ori_2[1].split(";")
+        # predict_label_2_top3 = predict_label_ori_2[2].split(";")
+        predict_label_2_new_list = []
+        predict_label_2_new_list.extend(predict_label_2_top1)
+        # predict_label_2_new_list.extend(predict_label_2_top2)
+
+        # print('-----》predict_label_1_new_list ', predict_label_1_new_list)
+        # print('-----》predict_label_2_new_list ', predict_label_2_new_list)
+        if len(list(set(predict_label_2_new_list) & set(predict_label_1_new_list))) > 0:
+            label_name = [
+                it for it in predict_label_1_new_list if it in set(predict_label_2_new_list)
+            ]
+            if predict_score_1[0] > predict_score_2[0]:
+                cls_score = predict_score_1[0]
+            else:
+                cls_score = predict_score_2[0]
+        else:
+            label_name = predict_label_2_new_list
+            cls_score = predict_score_2
+        return label_name, cls_score
 
     def merge_two_pic_res(self, predict_label_ori_1, predict_score_1, predict_label_ori_2, predict_score_2,
                           threshold=0.2):
@@ -274,7 +326,7 @@ class PredictExecl():
                 predict_score = res_js["others"]["score_list"]
             return predict_label, predict_score
         except (Exception,) as e:
-            print_with_timestamp(e)
+            print_with_timestamp(url)
 
 
 if __name__ == "__main__":

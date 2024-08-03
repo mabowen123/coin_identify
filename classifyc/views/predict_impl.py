@@ -74,8 +74,8 @@ class DetectOnnx2(PredictBase,DetectProcessOld):
 
 # 对应img_size=416的版本
 class ClsOnnx(ClsProcess, OnnxPredictBase):
-    def __init__(self, onnx_path):
-        ClsProcess.__init__(self)
+    def __init__(self, onnx_path,input_size):
+        ClsProcess.__init__(self,input_size)
         OnnxPredictBase.__init__(self, onnx_path)
 
     def __call__(self, img):
@@ -85,10 +85,9 @@ class ClsOnnx(ClsProcess, OnnxPredictBase):
         # print("cls_label topk_probs is:",cls_label[0], 'cls_label topk_indices is:', cls_label[1],cls_label)
         return cls_label[0], cls_label[1]
 
-# 对应img_size=627的版本
 class ClsOnnx3(ClsProcess3, OnnxPredictBase):
-    def __init__(self, onnx_path):
-        ClsProcess3.__init__(self)
+    def __init__(self, onnx_path, input_size):
+        ClsProcess3.__init__(self, input_size)
         OnnxPredictBase.__init__(self, onnx_path)
 
     def __call__(self, img):

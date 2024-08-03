@@ -1,4 +1,3 @@
-
 import cv2
 import time
 import torch
@@ -204,6 +203,7 @@ class DetectProcess(ProcessBase):
                 det[:, :4] = scale_coords((self.short_size, self.short_size), det[:, :4], ori_shape).round()
         return det
 
+
 class DetectProcessOld(ProcessBase):
     def __init__(self, short_size=640, conf_thresh=0.01):
         self.short_size = short_size
@@ -229,13 +229,15 @@ class DetectProcessOld(ProcessBase):
             if det is not None and len(det):
                 det[:, :4] = scale_coords((self.short_size, self.short_size), det[:, :4], ori_shape).round()
         return det
-    
+
+
 class ClsProcess(ProcessBase):
     def __init__(self, short_size=384):
+        self.input_size = short_size
         pass
 
-    def preprocess(self, image, input_size=416):
-        img = cv2.resize(image, (input_size, input_size),interpolation=cv2.INTER_CUBIC)
+    def preprocess(self, image):
+        img = cv2.resize(image, (self.input_size, self.input_size), interpolation=cv2.INTER_CUBIC)
         mean = [0.485, 0.456, 0.406]
         std = [0.229, 0.224, 0.225]
         img = img / 255.0
@@ -292,14 +294,15 @@ class ClsProcess2(ProcessBase):
         score = x[0, :].tolist()
         index = score.index(max(score))
         return index, score[index]
-    
+
 
 class ClsProcess3(ProcessBase):
     def __init__(self, short_size=672):
+        self.input_size = short_size
         pass
 
-    def preprocess(self, image, input_size=672):
-        img = cv2.resize(image, (input_size, input_size),interpolation=cv2.INTER_CUBIC)
+    def preprocess(self, image):
+        img = cv2.resize(image, (self.input_size, self.input_size), interpolation=cv2.INTER_CUBIC)
         mean = [0.5, 0.5, 0.5]
         std = [0.5, 0.5, 0.5]
         img = img / 255.0

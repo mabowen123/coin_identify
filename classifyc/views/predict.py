@@ -7,9 +7,14 @@ Created on Mon Jul 30 21:38:41 2018
 import torch
 import numpy as np
 import config
-from config import replace_dict, use_trt_flag, DETECT_TRT_PATH, DETECT_MODEL_PATH,DETECT_MODEL_OLD_PATH, \
-    CLASSIFY_TRT_PATH, CLASSIFY_MODEL_PATH, COIN_VALUE_MODEL_PATH, COIN_VALUE_TRT_PATH, print_info,old_coin_name_dicts,CLASSIFY_OLD_MODEL_PATH,CLASSIFY_RESNET_MODEL_PATH,CLASSIFY_OLD_MODEL_PATH2, CLASSIFY_OLD_MODEL_PATH_1129,DETECT_MODEL_BEI_PATH 
-from config import class_names, zhuzaoju_list, coin_value_names,angjiang_class_names,jingtui_class_names,fuyang_class_names,all_class_names,all_class_names_42,all_class_names_12,all_class_names_9,all_class_names_7,all_class_names_4,all_class_names_5,all_class_names_16,all_class_names_35,all_class_names_43,all_class_names_15,all_class_names_17,all_class_names_82,all_class_names_27
+from config import replace_dict, use_trt_flag, DETECT_TRT_PATH, DETECT_MODEL_PATH, DETECT_MODEL_OLD_PATH, \
+    CLASSIFY_TRT_PATH, CLASSIFY_MODEL_PATH, COIN_VALUE_MODEL_PATH, COIN_VALUE_TRT_PATH, print_info, old_coin_name_dicts, \
+    CLASSIFY_OLD_MODEL_PATH, CLASSIFY_RESNET_MODEL_PATH, CLASSIFY_OLD_MODEL_PATH2, CLASSIFY_OLD_MODEL_PATH_1129, \
+    DETECT_MODEL_BEI_PATH
+from config import class_names, zhuzaoju_list, coin_value_names, angjiang_class_names, jingtui_class_names, \
+    fuyang_class_names, all_class_names, all_class_names_42, all_class_names_12, all_class_names_9, all_class_names_7, \
+    all_class_names_4, all_class_names_5, all_class_names_16, all_class_names_35, all_class_names_43, \
+    all_class_names_15, all_class_names_17, all_class_names_82, all_class_names_27
 import cv2
 from torch.backends import cudnn
 import time
@@ -21,6 +26,7 @@ device = torch.device(device_type)
 
 if use_trt_flag:
     from views.predict_trt import DetectTrt as Detect, ValueTrt as Value, ClsTrt as Cls
+
     # from views.predict_impl import ClsOnnx as Cls
     detect_session = Detect(DETECT_TRT_PATH, 416, conf_thresh=config.conf_thres)
     detect_session_old = Detect(DETECT_TRT_PATH, 416, conf_thresh=config.conf_thres)
@@ -29,23 +35,39 @@ if use_trt_flag:
     # cls_session = Cls(CLASSIFY_MODEL_PATH)
     value_session = Value(COIN_VALUE_TRT_PATH)
 else:
-    from views.predict_impl import DetectOnnx as Detect, ClsOnnx as Cls, ClsOnnx3 as Cls3, ValueOnnx as Value, DetectOnnx2 as Detect2
+    from views.predict_impl import DetectOnnx as Detect, ClsOnnx as Cls, ClsOnnx3 as Cls3, ValueOnnx as Value, \
+        DetectOnnx2 as Detect2
 
     detect_session = Detect(DETECT_MODEL_PATH, 416, conf_thresh=config.conf_thres)
     detect_session_old = Detect2(DETECT_MODEL_OLD_PATH, 640, conf_thresh=config.conf_thres_old)
     detect_session_bei = Detect2(DETECT_MODEL_BEI_PATH, 640, conf_thresh=config.conf_thres_old)
     # detect_session_bei = Detect(DETECT_MODEL_BEI_PATH, 416, conf_thresh=config.conf_thres_old)
-    
+
+    model_and_img_size_dict = {
+        "convnext_small": {"intput_size": 224, "type": "cls"},
+        "efficientnet_b0": {"intput_size": 224, "type": "cls"},
+        "efficientnet_b5": {"intput_size": 416, "type": "cls"},
+        "efficientnet_b8": {"intput_size": 672, "type": "cls3"},
+        "efficientnetv2_xl": {"intput_size": 384, "type": "cls3"},
+        "efficientnet_l2_ns": {"intput_size": 475, "type": "cls"},
+        "efficientnetv2_s": {"intput_size": 300, "type": "cls3"},
+    }
+    hit_modle = [
+        {"model": key, "detail": val}
+        for key, val in model_and_img_size_dict.items()
+        if key in CLASSIFY_OLD_MODEL_PATH_1129
+    ]
+    detail = hit_modle[0]["detail"]
     # b8的模型
-    if 'efficientnet_b8' in CLASSIFY_OLD_MODEL_PATH_1129:
-        print("当前启动的模型是b8")
-        cls_session = Cls3(CLASSIFY_MODEL_PATH)
-        cls_old_session = Cls3(CLASSIFY_OLD_MODEL_PATH)
-        cls_old_session2 = Cls3(CLASSIFY_OLD_MODEL_PATH_1129)
-    else: # 默认是b5
-        cls_session = Cls(CLASSIFY_MODEL_PATH)
-        cls_old_session = Cls(CLASSIFY_OLD_MODEL_PATH)
-        cls_old_session2 = Cls(CLASSIFY_OLD_MODEL_PATH_1129)
+    if detail["type"] == "cls3":
+        print("当前启动的模型是", hit_modle[0]["model"])
+        cls_session = Cls3(CLASSIFY_MODEL_PATH, detail["intput_size"])
+        cls_old_session = Cls3(CLASSIFY_OLD_MODEL_PATH, detail["intput_size"])
+        cls_old_session2 = Cls3(CLASSIFY_OLD_MODEL_PATH_1129, detail["intput_size"])
+    else:  # 默认是b5
+        cls_session = Cls(CLASSIFY_MODEL_PATH, detail["intput_size"])
+        cls_old_session = Cls(CLASSIFY_OLD_MODEL_PATH, detail["intput_size"])
+        cls_old_session2 = Cls(CLASSIFY_OLD_MODEL_PATH_1129, detail["intput_size"])
     print("CLASSIFY_OLD_MODEL_PATH_1129", CLASSIFY_OLD_MODEL_PATH_1129)
     print("DETECT_MODEL_BEI_PATH", DETECT_MODEL_BEI_PATH)
     value_session = Value(COIN_VALUE_MODEL_PATH)
@@ -86,7 +108,7 @@ def classify_back_coin(image):
     cls_index, cls_score = cls_session(image)
     rec_classify = []
     for coin_item in cls_index:
-        rec_classify.append(class_names[coin_item]) 
+        rec_classify.append(class_names[coin_item])
     return rec_classify, cls_score
 
 
@@ -98,7 +120,7 @@ def circle_cut(img_src):
     img_mask = cv2.circle(img_mask, (int(cols / 2), int(rows / 2)), int(min(rows, cols) / 2 - 2), (0, 0, 0), -1)
     # # # 用max
     # img_mask = cv2.circle(img_mask, (int(cols / 2), int(rows / 2)), int(max(rows, cols) / 2 + 1), (0, 0, 0), -1)
-    
+
     img_circle = cv2.add(img_src, img_mask)
     return img_circle
 
@@ -117,7 +139,7 @@ def classifyc_coin(cls_crop_img):
     # print("adfer cls_label:", rec_classify)
     # return [replace_dict[coin_item] if coin_item in replace_keys for coin_item in coin], [], cls_score
     # if coin in replace_keys:
-        
+
     return rec_classify, [], cls_score
 
 
@@ -135,7 +157,7 @@ def predict_two_pics(src_img_1, src_img_2):
 def predict_old_feature(src_img):
     coin, [], cls_score = detect_coin_old_1129(src_img)
     return coin, [], cls_score
-    
+
 
 def detect_coin(src_img):
     detect_objects = detect_session(src_img)
@@ -152,7 +174,6 @@ def detect_coin(src_img):
         # return "未检测到钱币", [], 0
         return None
 
-    
 
 def classify_back_old_coin(image):
     image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -163,8 +184,9 @@ def classify_back_old_coin(image):
     print(cls_index, cls_score)
     rec_classify = []
     for coin_item in cls_index:
-        rec_classify.append(all_class_names_82[coin_item]) 
+        rec_classify.append(all_class_names_82[coin_item])
     return rec_classify, cls_score
+
 
 def classify_back_old_coin2(image):
     image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -175,7 +197,7 @@ def classify_back_old_coin2(image):
     print(cls_index, cls_score)
     rec_classify = []
     for coin_item in cls_index:
-        rec_classify.append(all_class_names_27[coin_item]) 
+        rec_classify.append(all_class_names_27[coin_item])
     return rec_classify, cls_score
 
 
@@ -185,8 +207,9 @@ def classifyc_old_coin(cls_crop_img):
     # print("adfer cls_label:", rec_classify)
     # return [replace_dict[coin_item] if coin_item in replace_keys for coin_item in coin], [], cls_score
     # if coin in replace_keys:
-        
+
     return rec_classify, [], cls_score
+
 
 def classifyc_old_coin2(cls_crop_img):
     print("begin classifyc_coin")
@@ -194,9 +217,10 @@ def classifyc_old_coin2(cls_crop_img):
     # print("adfer cls_label:", rec_classify)
     # return [replace_dict[coin_item] if coin_item in replace_keys for coin_item in coin], [], cls_score
     # if coin in replace_keys:
-        
+
     return rec_classify, [], cls_score
-    
+
+
 # def detect_coin_old(src_img):
 #     detect_objects = detect_session_old(src_img)
 #     rec_classify_all=[]
@@ -232,15 +256,15 @@ def classifyc_old_coin2(cls_crop_img):
 #     else:
 #         # return "未检测到钱币", [], 0
 #         return None
- 
+
 def merge_two_cur_img2(img1, img2):
-    if img1 =='' or img2 =='':
+    if img1 == '' or img2 == '':
         return ''
     # print('img1 and img2 is not null')
     img2 = cv2.rotate(img2, cv2.ROTATE_90_CLOCKWISE)
     # print('img1 and img2 rotate is not null')
-    height1, width1,_ = img1.shape
-    height2, width2,_ = img2.shape
+    height1, width1, _ = img1.shape
+    height2, width2, _ = img2.shape
 
     max_width = max(width1, width2)
     max_height = max(height1, height2)
@@ -250,6 +274,7 @@ def merge_two_cur_img2(img1, img2):
     print('img1 and img2 size is: ', height1, width1, height2, width2)
     new_img = cv2.vconcat([img1_resized, img2_resized])
     return new_img
+
 
 # def detect_coin_old(src_img):
 #     print("begin detect_coin_old")
@@ -394,12 +419,13 @@ def scale_img(rightIamge):
     right_image_scaled = cv2.resize(rightIamge, (width_new, height_new))
     return right_image_scaled
 
+
 # def detect_coin_old(src_img):
 #     rec_classify_all=[]
 #     cls_score_all =[]
-#     #大分类   
+#     #大分类
 #     path = "/gpu1-data/datasets/old_coin_class2/one_feature_4/test/"
-#     detect_objects = detect_session(src_img) 
+#     detect_objects = detect_session(src_img)
 #     if detect_objects is not None and len(detect_objects):
 #         for index, (*xyxy, det_score, det_cls) in enumerate(detect_objects):
 #             label =  old_coin_name_dicts[int(det_cls.numpy().tolist())]
@@ -415,9 +441,9 @@ def scale_img(rightIamge):
 #             rec_classify, [], cls_score = classifyc_old_coin2(cls_crop_img)
 #             rec_classify_all+=rec_classify[:3]
 #             cls_score_all+=cls_score[:3]
-    
+
 #     print(cls_score_all, cls_score_all)
-    
+
 #     # detect_objects = detect_session_old(src_img)
 #     # if detect_objects is not None and len(detect_objects):
 #     #     name_list = []
@@ -436,7 +462,7 @@ def scale_img(rightIamge):
 #     #         rec_classify, [], cls_score = classifyc_old_coin(cls_crop_img)
 #     #         rec_classify_all+=rec_classify[:2]
 #     #         cls_score_all+=cls_score[:2]
-            
+
 #     # print(rec_classify_all, cls_score_all)
 
 #     return rec_classify_all, [], cls_score_all
@@ -444,12 +470,13 @@ def scale_img(rightIamge):
 import requests
 import json
 
+
 def ytst_res(fullname, label1, name):
     ff = open(fullname, 'rb')
     files = {'file': ff}
     post_js = {
-            "label1": label1
-        }
+        "label1": label1
+    }
     print(label1, name)
     for index in range(3):
         res = requests.post('http://127.0.0.1:85/coin-agent/api/searchfile', data=post_js, files=files, timeout=60)
@@ -472,26 +499,26 @@ def ytst_res(fullname, label1, name):
                         labels[item] = predict_label_y[i]['distance']
                         labels_num[item] = 1
                 for item in labels:
-                    labels[item] = labels[item]/labels_num[item]
+                    labels[item] = labels[item] / labels_num[item]
                 print(labels)
-                if len(labels) ==0:
+                if len(labels) == 0:
                     return '正' + name, 0
                 sorted_list_by_key = sorted(labels.items(), key=lambda x: x[1])
                 predict_label = sorted_list_by_key[0][0]
-    return predict_label,sorted_list_by_key[0][1]
-        
+    return predict_label, sorted_list_by_key[0][1]
+
 
 def detect_coin_old(src_img):
-    rec_classify_all=[]
-    cls_score_all =[]
-    #大分类   
+    rec_classify_all = []
+    cls_score_all = []
+    # 大分类
     path = "/gpu1-data/datasets/old_coin_class2/one_feature_4/test/"
-    detect_objects = detect_session(src_img) 
+    detect_objects = detect_session(src_img)
     if detect_objects is not None and len(detect_objects):
         for index, (*xyxy, det_score, det_cls) in enumerate(detect_objects):
-            label =  old_coin_name_dicts[int(det_cls.numpy().tolist())]
+            label = old_coin_name_dicts[int(det_cls.numpy().tolist())]
             # print(index, xyxy)
-            if index >0:
+            if index > 0:
                 continue
             cls_crop_img = src_img[int(xyxy[1]):int(xyxy[3]), int(xyxy[0]):int(xyxy[2])]
             cls_crop_img = circle_cut(cls_crop_img)
@@ -500,16 +527,16 @@ def detect_coin_old(src_img):
             cls_crop_img = scale_img(cls_crop_img)
             # cv2.imwrite(path + 'tmp.jpg', cls_crop_img)
             rec_classify, [], cls_score = classifyc_old_coin2(cls_crop_img)
-            rec_classify_all+=rec_classify[:1]
-            cls_score_all+=cls_score[:1]
-    
+            rec_classify_all += rec_classify[:1]
+            cls_score_all += cls_score[:1]
+
     print(cls_score_all, cls_score_all, rec_classify_all[0][:-1])
-    
+
     detect_objects = detect_session_old(src_img)
     if detect_objects is not None and len(detect_objects):
         name_list = []
         for index, (*xyxy, det_score, det_cls) in enumerate(detect_objects):
-            label =  old_coin_name_dicts[int(det_cls.numpy().tolist())]
+            label = old_coin_name_dicts[int(det_cls.numpy().tolist())]
             print(label, xyxy)
             if label == '穿':
                 continue
@@ -521,27 +548,25 @@ def detect_coin_old(src_img):
             cls_crop_img = cv2.cvtColor(cls_crop_img, cv2.COLOR_GRAY2RGB)
             cls_crop_img = scale_img(cls_crop_img)
             cv2.imwrite(path + 'tmp.jpg', cls_crop_img)
-            predict_label,cls_score = ytst_res(path + 'tmp.jpg',rec_classify_all[0][:-1], label)
+            predict_label, cls_score = ytst_res(path + 'tmp.jpg', rec_classify_all[0][:-1], label)
             rec_classify_all.append(predict_label)
             cls_score_all.append(cls_score)
-            
+
     print(rec_classify_all, cls_score_all)
 
     return rec_classify_all, [], cls_score_all
 
 
-
-
 def detect_coin_old_1129(src_img):
-    rec_classify_all=[]
-    cls_score_all =[]
-    #大分类   
-    detect_objects = detect_session(src_img) 
+    rec_classify_all = []
+    cls_score_all = []
+    # 大分类
+    detect_objects = detect_session(src_img)
     if detect_objects is not None and len(detect_objects):
         for index, (*xyxy, det_score, det_cls) in enumerate(detect_objects):
-            label =  old_coin_name_dicts[int(det_cls.numpy().tolist())]
+            label = old_coin_name_dicts[int(det_cls.numpy().tolist())]
             # print(index, xyxy)
-            if index >0:
+            if index > 0:
                 continue
             # cls_crop_img = src_img
             cls_crop_img = src_img[int(xyxy[1]):int(xyxy[3]), int(xyxy[0]):int(xyxy[2])]
@@ -550,13 +575,14 @@ def detect_coin_old_1129(src_img):
             cls_crop_img = cv2.cvtColor(cls_crop_img, cv2.COLOR_GRAY2RGB)
             cls_crop_img = scale_img(cls_crop_img)
             rec_classify, [], cls_score = classifyc_old_coin2(cls_crop_img)
-            rec_classify_all+=rec_classify[:5]
-            cls_score = [round(it,3) for it in cls_score]
-            cls_score_all+=cls_score[:5]
-    
+            rec_classify_all += rec_classify[:5]
+            cls_score = [round(it, 3) for it in cls_score]
+            cls_score_all += cls_score[:5]
+
     # print(cls_score_all, cls_score_all, rec_classify_all[0][:-1])
 
     return rec_classify_all, [], cls_score_all
+
 
 def cut_pic_half(iamge_pic):
     iamge_pic_szie = iamge_pic.shape
@@ -564,12 +590,13 @@ def cut_pic_half(iamge_pic):
     iamge_pic_szie_w = iamge_pic_szie[1]
     len_x_1 = int(iamge_pic_szie_h / 2)
     len_y_1 = int(iamge_pic_szie_w / 2)
-    imgs_up = iamge_pic[:len_x_1,:]
-    imgs_down = iamge_pic[len_x_1:,:]
-    imgs_left = iamge_pic[:,:len_y_1]
-    imgs_right = iamge_pic[:,len_y_1:]
+    imgs_up = iamge_pic[:len_x_1, :]
+    imgs_down = iamge_pic[len_x_1:, :]
+    imgs_left = iamge_pic[:, :len_y_1]
+    imgs_right = iamge_pic[:, len_y_1:]
     return imgs_up, imgs_down, imgs_left, imgs_right
- 
+
+
 def panbie_label(predict_label_c, predict_score):
     label = ['星', '月', '直纹']
     wenli_label_dict = {}
@@ -577,7 +604,7 @@ def panbie_label(predict_label_c, predict_score):
         item = predict_label_c[i]
         score = predict_score[i]
         if item in label:
-            wenli_label_dict[item,i] = score
+            wenli_label_dict[item, i] = score
     if len(wenli_label_dict) == 0:
         return '光背', predict_score[0]
     res = sorted(wenli_label_dict.items(), key=lambda d: d[1])[0]
@@ -589,15 +616,15 @@ def panbie_label(predict_label_c, predict_score):
         return '背左' + res[0][0], res[1]
     if res[0][1] == 3:
         return '背右' + res[0][0], res[1]
-    
+
 
 # def detect_coin_old_1129(src_img):
 #     rec_classify_all=[]
 #     cls_score_all =[]
 #     rec_all=[]
 #     score_all =[]
-#     #大分类   
-#     detect_objects = detect_session(src_img) 
+#     #大分类
+#     detect_objects = detect_session(src_img)
 #     if detect_objects is not None and len(detect_objects):
 #         for index, (*xyxy, det_score, det_cls) in enumerate(detect_objects):
 #             label =  old_coin_name_dicts[int(det_cls.numpy().tolist())]
@@ -610,27 +637,27 @@ def panbie_label(predict_label_c, predict_score):
 #             cls_crop_img = cv2.cvtColor(cls_crop_img, cv2.COLOR_GRAY2RGB)
 #             cls_crop_img = scale_img(cls_crop_img)
 #             imgs_up, imgs_down, imgs_left, imgs_right = cut_pic_half(cls_crop_img)
-            
+
 #             rec_classify_up, [], cls_score_up = classifyc_old_coin2(imgs_up)
 #             rec_classify_all+=rec_classify_up[:1]
 #             cls_score = [round(it,3) for it in cls_score_up]
 #             cls_score_all+=cls_score[:1]
-            
+
 #             rec_classify_down, [], cls_score_down = classifyc_old_coin2(imgs_down)
 #             rec_classify_all+=rec_classify_down[:1]
 #             cls_score = [round(it,3) for it in cls_score_down]
 #             cls_score_all+=cls_score[:1]
-            
+
 #             rec_classify_left, [], cls_score_left = classifyc_old_coin2(imgs_left)
 #             rec_classify_all+=rec_classify_left[:1]
 #             cls_score = [round(it,3) for it in cls_score_left]
 #             cls_score_all+=cls_score[:1]
-            
+
 #             rec_classify_right, [], cls_score_right = classifyc_old_coin2(imgs_right)
 #             rec_classify_all+=rec_classify_right[:1]
 #             cls_score = [round(it,3) for it in cls_score_right]
 #             cls_score_all+=cls_score[:1]
-    
+
 #     # print(cls_score_all, cls_score_all, rec_classify_all[0][:-1])
 #     res_label, res_score = panbie_label(rec_classify_all, cls_score_all)
 #     rec_all.append(res_label)
@@ -638,31 +665,30 @@ def panbie_label(predict_label_c, predict_score):
 #     return rec_all, [], score_all
 
 
-
 def feature_point(label_name, xyxy_1, xyxy_0):
-    if xyxy_1[0] - xyxy_0[0] > 0 :
+    if xyxy_1[0] - xyxy_0[0] > 0:
         return '背下' + label_name
-    if xyxy_1[0] - xyxy_0[0] < 0 :
+    if xyxy_1[0] - xyxy_0[0] < 0:
         return '背上' + label_name
-    if xyxy_1[1] - xyxy_0[1] > 0 :
+    if xyxy_1[1] - xyxy_0[1] > 0:
         return '背右' + label_name
-    if xyxy_1[1] - xyxy_0[1] < 0 :
+    if xyxy_1[1] - xyxy_0[1] < 0:
         return '背左' + label_name
-            
+
 
 def detect_coin_old_bei(src_img):
-    rec_classify_all=[]
-    cls_score_all =[]
-    #大分类   
-    detect_objects = detect_session_bei(src_img) 
+    rec_classify_all = []
+    cls_score_all = []
+    # 大分类
+    detect_objects = detect_session_bei(src_img)
     point_dict = {}
     if detect_objects is not None and len(detect_objects):
         for index, (*xyxy, det_score, det_cls) in enumerate(detect_objects):
-            label =  old_coin_name_dicts[int(det_cls.numpy().tolist())]
-            print(index, label, xyxy,det_cls.numpy().tolist())
+            label = old_coin_name_dicts[int(det_cls.numpy().tolist())]
+            print(index, label, xyxy, det_cls.numpy().tolist())
             cls_crop_img = src_img[int(xyxy[1]):int(xyxy[3]), int(xyxy[0]):int(xyxy[2])]
             point_dict[label] = xyxy
-            
+
     if len(point_dict) == 1 or '穿口' not in point_dict:
         rec_classify_all = ['光背']
         cls_score_all = [1.0]
@@ -685,19 +711,19 @@ def detect_coin_old_bei(src_img):
             label_name = feature_point('直纹', xyxy_1, xyxy_0)
             rec_classify_all = [label_name]
             cls_score_all = [1.0]
-            
+
             # cv2.imwrite('/gpu1-data/datasets/1129_old_coin_class/origin/load_pic_gray_cut_背面/测试/tmp_' + str(index) + '.jpg', cls_crop_img)
             # cv2.imwrite('./ytst_res_error_宝2/左实右预_实际_'+ dir2+'_预测_' + predict_label + '_'+filename +'.jpg',img)
-            
-#             cls_crop_img = circle_cut(cls_crop_img)
-#             cls_crop_img = cv2.cvtColor(cls_crop_img, cv2.COLOR_BGR2GRAY)
-#             cls_crop_img = cv2.cvtColor(cls_crop_img, cv2.COLOR_GRAY2RGB)
-#             cls_crop_img = scale_img(cls_crop_img)
-#             rec_classify, [], cls_score = classifyc_old_coin2(cls_crop_img)
-#             rec_classify_all+=rec_classify[:5]
-#             cls_score = [round(it,3) for it in cls_score]
-#             cls_score_all+=cls_score[:5]
-    
+
+    #             cls_crop_img = circle_cut(cls_crop_img)
+    #             cls_crop_img = cv2.cvtColor(cls_crop_img, cv2.COLOR_BGR2GRAY)
+    #             cls_crop_img = cv2.cvtColor(cls_crop_img, cv2.COLOR_GRAY2RGB)
+    #             cls_crop_img = scale_img(cls_crop_img)
+    #             rec_classify, [], cls_score = classifyc_old_coin2(cls_crop_img)
+    #             rec_classify_all+=rec_classify[:5]
+    #             cls_score = [round(it,3) for it in cls_score]
+    #             cls_score_all+=cls_score[:5]
+
     # print(cls_score_all, cls_score_all, rec_classify_all[0][:-1])
 
     return rec_classify_all, [], cls_score_all
@@ -705,7 +731,7 @@ def detect_coin_old_bei(src_img):
 # def detect_coin_old_1129(src_img):
 #     rec_classify_all=[]
 #     cls_score_all =[]
-#     #大分类  
+#     #大分类
 #     cls_crop_img = src_img
 #     # cls_crop_img = cv2.cvtColor(src_img, cv2.COLOR_BGR2GRAY)
 #     # cls_crop_img = cv2.cvtColor(cls_crop_img, cv2.COLOR_GRAY2RGB)
@@ -713,7 +739,7 @@ def detect_coin_old_bei(src_img):
 #     rec_classify_all+=rec_classify[:5]
 #     cls_score = [round(it,3) for it in cls_score]
 #     cls_score_all+=cls_score[:5]
-    
+
 #     # print(cls_score_all, cls_score_all, rec_classify_all[0][:-1])
 
 #     return rec_classify_all, [], cls_score_all
