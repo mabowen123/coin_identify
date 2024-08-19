@@ -74,7 +74,7 @@ class PredictExecl():
         if not self.is_local() and image_url2 == '':
             url = f"http://imgt.wpt.la/ancient-coin/api/{self.url}?pic={image_url}"
         elif not self.is_local() and image_url2 != '':
-            url = f"http://imgt.wpt.la/ancient-coin-qing/api/{self.url}?pic1={image_url}&pic2={image_url2}"
+            url = f"http://imgt.wpt.la/machine-coins/api/{self.url}?pic1={image_url}&pic2={image_url2}"
         return url
 
     def valida(self):
@@ -91,8 +91,9 @@ class PredictExecl():
     def ns(self, res):
         label_dist = {}
         label_dist_back = {}
+        label_dist_front = {}
         req_img_url = []
-        no_process, right, error = 0, 0, 0
+        no_process, right, error, back_right, back_error, front_right, front_error = 0, 0, 0, 0, 0, 0, 0
         df = pd.read_excel(self.index_map_execl_path)
         dict = {}
         for index, row in df.iterrows():
@@ -100,8 +101,18 @@ class PredictExecl():
         for label_name, coin_item in res.items():
             if label_name not in label_dist:
                 label_dist[label_name] = {'right': 0, 'error': 0, 'no_process': 0, 'all': 0}
-                label_dist_back[label_name] = {'right': 0, 'error': 0, 'no_process': 0, 'all': 0, "print": []}
             for item in coin_item:
+                if "反面特征" in item:
+                    back_label_name = item['反面特征']
+                else:
+                    back_label_name = item['背面特征']
+                front_label_name = item['正面特征']
+                if back_label_name not in label_dist_back:
+                    label_dist_back[back_label_name] = {'right': 0, 'error': 0, 'no_process': 0, 'all': 0, "print": []}
+
+                if front_label_name not in label_dist_front:
+                    label_dist_front[front_label_name] = {'right': 0, 'error': 0, 'no_process': 0, 'all': 0,
+                                                          "print": []}
                 front_img = item['正面图片']
                 back_img = item['反面图片']
                 img_url_str = front_img + back_img
@@ -109,7 +120,8 @@ class PredictExecl():
                     continue
                 req_img_url.append(img_url_str)
                 label_dist[label_name]["all"] += 1
-                label_dist_back[label_name]["all"] += 1
+                label_dist_back[back_label_name]["all"] += 1
+                label_dist_front[front_label_name]["all"] += 1
                 if self.is_local():
                     predict_label_c1, predict_score1 = self.request_server(self.get_req_url(front_img))
                     predict_label_c2, predict_score2 = self.request_server(self.get_req_url(back_img))
@@ -117,12 +129,26 @@ class PredictExecl():
                     predict_label, predict_score = self.request_server(self.get_req_url(front_img, back_img))
                     predict_label_c1, predict_label_c2 = predict_label
                     predict_score1, predict_score2 = predict_score
-                predict_name, cls_score = self.merge_two_pic_res_qing(predict_label_c1, predict_score1,
-                                                                      predict_label_c2,
-                                                                      predict_score2)
+                predict_name, cls_score = self.merge_two_pic_res(predict_label_c1, predict_score1,
+                                                                 predict_label_c2,
+                                                                 predict_score2)
                 if label_name not in predict_label_c2[0]:
-                    label_dist_back[label_name]["print"].append(
+                    label_dist_back[back_label_name]["error"] += 1
+                    back_error += 1
+                    label_dist_back[back_label_name]["print"].append(
                         f"背面错误: {self.IdtoStr(dict, label_name, 2)}, {self.IdtoStr(dict, predict_label_c2[:3], 2)} ,得分:{predict_score2[:3]} \n背面图:{back_img} \n")
+                else:
+                    label_dist_back[back_label_name]["right"] += 1
+                    back_right += 1
+
+                if label_name not in predict_label_c1[0]:
+                    label_dist_front[front_label_name]["error"] += 1
+                    front_error += 1
+                    label_dist_front[front_label_name]["print"].append(
+                        f"正面错误: {self.IdtoStr(dict, label_name, 1)}, {self.IdtoStr(dict, predict_label_c1[:3], 1)} ,得分:{predict_score1[:3]} \n正面图:{front_img} \n")
+                else:
+                    label_dist_front[front_label_name]["right"] += 1
+                    front_right += 1
 
                 if predict_name[0] == "":
                     label_dist[label_name]["no_process"] += 1
@@ -144,10 +170,29 @@ class PredictExecl():
         print_with_timestamp(
             f'result: right={right},  all={right + error}, percentage={right / (right + error + 1)},no_process={no_process}')
 
-        print("\n")
+        print("\n背面样本")
         for finish_name, values in label_dist_back.items():
             for print_item in values['print']:
                 print_with_timestamp(print_item)
+
+        for finish_name, values in label_dist_back.items():
+            print_with_timestamp(
+                f"类别={finish_name}, 预测正确={values['right']}, percentage={values['right'] / (values['all'])}, no_process={values['no_process']}, 样本量={values['all']}")
+
+        print_with_timestamp(
+            f'result: right={back_right},  all={back_right + back_error}, percentage={back_right / (back_right + back_error + 1)}')
+
+        print("\n正面样本")
+        for finish_name, values in label_dist_front.items():
+            for print_item in values['print']:
+                print_with_timestamp(print_item)
+
+        for finish_name, values in label_dist_front.items():
+            print_with_timestamp(
+                f"类别={finish_name}, 预测正确={values['right']}, percentage={values['right'] / (values['all'])}, no_process={values['no_process']}, 样本量={values['all']}")
+
+        print_with_timestamp(
+            f'result: right={front_right},  all={front_right + front_error}, percentage={front_right / (front_right + front_error + 1)}')
 
     def IdtoStr(self, dict, coin_id, type=1):
         if coin_id in ['无法识别']:
@@ -298,7 +343,7 @@ class PredictExecl():
                         predict_label[:2],
                         predict_score[:2],
                         img_url,
-                    )
+                        )
         for finish_name, values in label_dist.items():
             print_with_timestamp(
                 f"类别={finish_name}, 预测正确={values['right']}, percentage={values['right'] / (values['all'])}, no_process={values['no_process']}, 样本量={values['all']}"
@@ -326,7 +371,7 @@ class PredictExecl():
                 predict_score = res_js["others"]["score_list"]
             return predict_label, predict_score
         except (Exception,) as e:
-            print_with_timestamp(url)
+            print_with_timestamp(e)
 
 
 if __name__ == "__main__":

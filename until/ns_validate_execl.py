@@ -2,9 +2,9 @@ import os
 
 import pandas as pd
 
-index_execl_path = "/Users/mabowen/Downloads/道光通宝/道光通宝映射表802.xlsx"
-train_execl_path = "/Users/mabowen/Downloads/道光通宝/道光通宝训练集802.xlsx"
-validate_execl_path = "/Users/mabowen/Downloads/道光通宝/道光通宝测试集802.xlsx"
+index_execl_path = "/Users/mabowen/Downloads/光绪元宝/光绪元宝映射表815.xlsx"
+train_execl_path = "/Users/mabowen/Downloads/光绪元宝/光绪元宝训练集815.xlsx"
+validate_execl_path = "/Users/mabowen/Downloads/光绪元宝/光绪元宝测试集815.xlsx"
 
 # 读取映射表 正反面特征
 index_execl_df = pd.read_excel(index_execl_path)

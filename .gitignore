@@ -6,6 +6,7 @@ datasets/*
 log/*
 /sh/*
 /until/skylake.py
+/until/*.xlsx
 !sh/default
 coin_Identify.iml
 config.yaml
